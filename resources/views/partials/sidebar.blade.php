@@ -33,23 +33,15 @@
             <span class="text-sm">Historial</span>
         </a>
 
-        <!-- 4. Canje -->
+        <!-- 4. Canje QR -->
         <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('canje*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
             href="{{ route('canje') }}">
             <span class="material-symbols-outlined" @if(request()->routeIs('canje*'))
             style="font-variation-settings: 'FILL' 1;" @endif>qr_code_scanner</span>
-            <span class="text-sm">Canje</span>
+            <span class="text-sm">Canje QR</span>
         </a>
 
-        <!-- 5. Pagos -->
-        <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('metodos-pago*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
-            href="{{ route('metodos-pago') }}">
-            <span class="material-symbols-outlined" @if(request()->routeIs('metodos-pago*'))
-            style="font-variation-settings: 'FILL' 1;" @endif>payments</span>
-            <span class="text-sm">Pagos</span>
-        </a>
-
-        <!-- 6. Perfil -->
+        <!-- 5. Perfil -->
         <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('perfil*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
             href="{{ route('perfil') }}">
             <span class="material-symbols-outlined" @if(request()->routeIs('perfil*'))

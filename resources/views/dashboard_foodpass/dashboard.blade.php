@@ -97,25 +97,23 @@
 <header class="fixed top-0 right-0 w-full lg:w-[calc(100%-16rem)] h-16 z-30 bg-white/80 dark:bg-[#121f05]/80 backdrop-blur-md shadow-[0px_20px_40px_rgba(18,31,5,0.06)] flex justify-between items-center px-6 transition-colors duration-300">
 <div class="flex items-center gap-4 flex-1">
 <div class="lg:hidden text-lg font-bold text-[#273517] dark:text-white">FoodPass</div>
-<!-- Requerimiento 1: Buscador eliminado del Dashboard -->
 </div>
 
 <div class="flex items-center gap-6 relative">
-<!-- Requerimiento 2: Campana de Notificaciones Interactiva con Dropdown -->
+<!-- Campana de Notificaciones -->
 <div class="relative">
 <button @click="showNotifs = !showNotifs" @click.away="showNotifs = false" class="relative p-2 text-on-background hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors focus:outline-none">
 <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
 <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-primary-container rounded-full ring-2 ring-white"></span>
 </button>
 
-<!-- Popover / Menú desplegable de notificaciones -->
+<!-- Popover de notificaciones -->
 <div x-show="showNotifs" x-transition x-cloak class="absolute right-0 mt-2 w-80 bg-white dark:bg-[#1f2d12] rounded-2xl shadow-xl border border-gray-100 dark:border-white/10 py-3 z-50">
 <div class="px-4 pb-2 border-b border-gray-100 dark:border-white/10 flex items-center justify-between">
 <span class="font-headline font-bold text-sm text-on-background dark:text-white">Notificaciones de Menú</span>
 <span class="text-[10px] bg-primary-container text-white px-2 py-0.5 rounded-full font-bold">2 nuevas</span>
 </div>
 <div class="divide-y divide-gray-50 dark:divide-white/5 max-h-72 overflow-y-auto">
-<!-- Mensaje de prueba 1: Agotado -->
 <div class="p-3.5 hover:bg-surface-container-low/50 transition-colors flex items-start gap-3">
 <div class="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0 text-sm mt-0.5">
 <span class="material-symbols-outlined text-[18px]">block</span>
@@ -126,7 +124,6 @@
 <span class="text-[10px] text-gray-400 mt-1 block">Hace 15 min</span>
 </div>
 </div>
-<!-- Mensaje de prueba 2: Cambio de precio -->
 <div class="p-3.5 hover:bg-surface-container-low/50 transition-colors flex items-start gap-3">
 <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 text-sm mt-0.5">
 <span class="material-symbols-outlined text-[18px]">sell</span>
@@ -137,7 +134,6 @@
 <span class="text-[10px] text-gray-400 mt-1 block">Hace 1 hora</span>
 </div>
 </div>
-<!-- Mensaje 3: Menú general -->
 <div class="p-3.5 hover:bg-surface-container-low/50 transition-colors flex items-start gap-3">
 <div class="w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center shrink-0 text-sm mt-0.5">
 <span class="material-symbols-outlined text-[18px]">restaurant_menu</span>
@@ -152,7 +148,6 @@
 </div>
 </div>
 
-<!-- Requerimiento 6: Eliminado nombre de usuario e icono redundant en el header -->
 </div>
 </header>
 <!-- Main Content Canvas -->
@@ -168,19 +163,19 @@
 <div class="md:col-span-8 bg-surface-container-lowest rounded-[2rem] p-8 shadow-[0px_20px_40px_rgba(18,31,5,0.04)] relative overflow-hidden group">
 <div class="relative z-10 flex flex-col h-full justify-between">
 <div>
-<span class="bg-tertiary-container text-on-tertiary-container text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-6 inline-block">Plan Premium</span>
-<h3 class="text-on-background text-2xl font-headline font-bold mb-1">Almuerzos disponibles</h3>
-<p class="text-on-surface-variant mb-8">Consumos restantes de tu ciclo mensual</p>
+<span class="bg-tertiary-container text-on-tertiary-container text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-6 inline-block">Beneficio SENA</span>
+<h3 class="text-on-background text-2xl font-headline font-bold mb-1">Canjes QR Disponibles</h3>
+<p class="text-on-surface-variant mb-8">Genera tu código QR para redimir tu beneficio alimentario</p>
 </div>
 <div class="flex items-end gap-4">
-<span class="text-7xl font-headline font-extrabold text-primary-container tracking-tighter">14</span>
-<span class="text-on-surface-variant text-xl font-headline font-semibold pb-2">/ 22 días</span>
+<span class="text-7xl font-headline font-extrabold text-primary-container tracking-tighter">∞</span>
+<span class="text-on-surface-variant text-xl font-headline font-semibold pb-2">sin límite diario</span>
 </div>
 </div>
 <!-- Abstract Decorative Element -->
 <div class="absolute -right-16 -bottom-16 w-64 h-64 bg-surface-container-high rounded-full opacity-20 group-hover:scale-110 transition-transform duration-500"></div>
 <div class="absolute right-8 top-8">
-<span class="material-symbols-outlined text-primary-container text-6xl opacity-20" data-icon="restaurant" style="font-variation-settings: 'FILL' 1;">restaurant</span>
+<span class="material-symbols-outlined text-primary-container text-6xl opacity-20" data-icon="qr_code_2" style="font-variation-settings: 'FILL' 1;">qr_code_2</span>
 </div>
 </div>
 <!-- Stats Side Cards -->
@@ -198,19 +193,19 @@
 <p class="text-3xl font-headline font-extrabold text-on-background">48</p>
 </div>
 </div>
-<!-- Requerimiento 3: Botón Estado de Cuenta redirecciona a vista de Pagos (metodos-pago) -->
-<a href="{{ route('metodos-pago') }}" class="bg-inverse-surface rounded-[2rem] p-6 text-white flex flex-col justify-between h-full hover:opacity-95 hover:scale-[1.01] transition-all group cursor-pointer">
+<!-- Botón Canje QR -->
+<a href="{{ route('canje') }}" class="bg-inverse-surface rounded-[2rem] p-6 text-white flex flex-col justify-between h-full hover:opacity-95 hover:scale-[1.01] transition-all group cursor-pointer">
 <div class="flex justify-between items-start">
 <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center">
-<span class="material-symbols-outlined text-primary-container" data-icon="account_balance_wallet" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+<span class="material-symbols-outlined text-primary-container" data-icon="qr_code_scanner" style="font-variation-settings: 'FILL' 1;">qr_code_scanner</span>
 </div>
 <div class="text-white/40 group-hover:text-white transition-colors">
 <span class="material-symbols-outlined" data-icon="arrow_forward_ios">arrow_forward_ios</span>
 </div>
 </div>
 <div>
-<p class="text-white/60 text-sm font-semibold uppercase tracking-wider mb-1">Estado de cuenta</p>
-<p class="text-2xl font-headline font-bold">$12.450,00</p>
+<p class="text-white/60 text-sm font-semibold uppercase tracking-wider mb-1">Canje QR</p>
+<p class="text-2xl font-headline font-bold">Generar QR</p>
 </div>
 </a>
 </div>
@@ -221,7 +216,6 @@
 <div class="lg:col-span-2">
 <div class="flex items-center justify-between mb-6 px-2">
 <h4 class="text-xl font-headline font-bold text-on-background">Historial de Consumo</h4>
-<!-- Requerimiento 7: Botón "Ver todo" redirecciona a vista Historial -->
 <a class="text-primary font-semibold text-sm hover:underline" href="{{ route('historial') }}">Ver todo</a>
 </div>
 <div class="bg-surface-container-lowest rounded-[2rem] overflow-hidden">
@@ -252,20 +246,6 @@
 <p class="text-xs text-on-surface-variant">Ayer, 09:15 AM</p>
 </div>
 </div>
-<div class="mx-6 h-0.5 bg-surface-container-high/50"></div>
-<div class="p-6 flex items-center gap-4 hover:bg-surface-container-low transition-colors duration-200">
-<div class="w-14 h-14 rounded-2xl bg-surface-container flex items-center justify-center flex-shrink-0">
-<span class="material-symbols-outlined text-on-surface" data-icon="local_drink">local_drink</span>
-</div>
-<div class="flex-1">
-<p class="font-headline font-bold text-on-background">Recarga de Saldo</p>
-<p class="text-sm text-on-surface-variant">Pago con Tarjeta *4421</p>
-</div>
-<div class="text-right">
-<p class="font-headline font-bold text-tertiary">+$15.000</p>
-<p class="text-xs text-on-surface-variant">12 Oct, 04:30 PM</p>
-</div>
-</div>
 </div>
 </div>
 <!-- Featured "Freshness" Section (1/3 width) -->
@@ -283,7 +263,6 @@
 <div class="px-4 pb-6 pt-2">
 <h5 class="text-lg font-headline font-bold text-on-background mb-1">Poke Bowl de Salmón</h5>
 <p class="text-sm text-on-surface-variant mb-6 leading-relaxed">Arroz integral, aguacate fresco y edamame con aderezo cítrico.</p>
-<!-- Requerimiento 4: Botón "Pedir ahora" redirecciona a la vista de Menú -->
 <a href="{{ route('menu-digital') }}" class="w-full bg-primary-container text-on-primary-container font-headline font-bold py-4 rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary-container/10 flex items-center justify-center">
     Pedir ahora
 </a>
@@ -292,11 +271,11 @@
 </div>
 </div>
 </main>
-<!-- Requerimiento 5: Botón flotante QR de Canje redirecciona a la vista de Canje -->
+<!-- Botón flotante QR de Canje -->
 <a href="{{ route('canje') }}" class="fixed bottom-8 right-8 w-16 h-16 bg-primary-container text-on-primary-container rounded-full shadow-[0px_20px_40px_rgba(18,31,5,0.2)] flex items-center justify-center group hover:scale-110 active:scale-95 transition-all z-50">
 <span class="material-symbols-outlined text-3xl" data-icon="qr_code_2">qr_code_2</span>
 <div class="absolute right-full mr-4 bg-inverse-surface text-white text-sm font-bold py-2 px-4 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-    Escanear para Canje
+    Generar QR de Canje
 </div>
 </a>
 </body></html>

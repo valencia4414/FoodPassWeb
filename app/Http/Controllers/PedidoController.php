@@ -6,35 +6,35 @@ use Illuminate\Http\Request;
 use App\Models\Pedido;
 use App\Models\Platillo;
 use App\Models\DetallePedido;
+use App\Models\Restaurante;
 use Illuminate\Support\Facades\DB;
 
 class PedidoController extends Controller
 {
-    // Punto 89: Obtener historial paginado con filtros
+    // Obtener historial paginado con filtros
     public function index(Request $request)
     {
-        $query = Pedido::where('user_id', auth()->id());
+        $query = Pedido::where('usuario_id', auth()->id());
 
         if ($request->has('estado')) {
             $query->where('estado', $request->estado);
         }
 
         if ($request->has('fecha')) {
-            $query->whereDate('created_at', $request->fecha);
+            $query->whereDate('creado_en', $request->fecha);
         }
 
-        return response()->json($query->orderBy('created_at', 'desc')->paginate(10));
+        return response()->json($query->orderBy('creado_en', 'desc')->paginate(10));
     }
 
-    // Punto 86: Crear pedido validando disponibilidad y calculando total
+    // Crear pedido validando disponibilidad y calculando total (Sin pagos)
     public function store(Request $request)
     {
         $request->validate([
-            'restaurante_id' => 'required|exists:restaurantes,id',
-            'metodo_pago' => 'required|in:efectivo,transferencia,nequi,tarjeta',
-            'items' => 'required|array|min:1',
+            'restaurante_id'      => 'required|exists:restaurantes,id',
+            'items'               => 'required|array|min:1',
             'items.*.platillo_id' => 'required|exists:platillos,id',
-            'items.*.cantidad' => 'required|integer|min:1',
+            'items.*.cantidad'    => 'required|integer|min:1',
         ]);
 
         return DB::transaction(function () use ($request) {
@@ -51,18 +51,18 @@ class PedidoController extends Controller
                 $total += $platillo->precio * $item['cantidad'];
 
                 $itemsAInsertar[] = [
-                    'platillo_id' => $platillo->id,
-                    'cantidad' => $item['cantidad'],
+                    'platillo_id'     => $platillo->id,
+                    'cantidad'        => $item['cantidad'],
                     'precio_unitario' => $platillo->precio,
                 ];
             }
 
             $pedido = Pedido::create([
-                'user_id' => auth()->id(),
+                'usuario_id'     => auth()->id(),
                 'restaurante_id' => $request->restaurante_id,
-                'metodo_pago' => $request->metodo_pago,
-                'total' => $total,
-                'estado' => 'pendiente',
+                'total'          => $total,
+                'estado'         => 'pendiente',
+                'fecha_pedido'   => now(),
             ]);
 
             foreach ($itemsAInsertar as $detalle) {
@@ -75,32 +75,32 @@ class PedidoController extends Controller
         });
     }
 
-    // Punto 88: Detalle completo de un pedido específico
+    // Detalle completo de un pedido específico
     public function show($id)
     {
         $pedido = Pedido::with(['detalles.platillo', 'user'])->findOrFail($id);
         return response()->json($pedido);
     }
 
-    // Punto 87: Cambiar estado aplicando reglas de roles
+    // Cambiar estado aplicando reglas de roles
     public function update(Request $request, $id)
     {
         $request->validate([
-            'estado' => 'required|in:pendiente,en_preparacion,entregado,cancelado',
+            'estado' => 'required|in:pendiente,preparacion,entregado,cancelado',
         ]);
 
         $pedido = Pedido::findOrFail($id);
         $user = auth()->user();
 
         // Usuario cancela su propia orden solo si está en 'pendiente'
-        if ($user->id === $pedido->user_id && $request->estado === 'cancelado' && $pedido->estado === 'pendiente') {
+        if ($user->id === $pedido->usuario_id && $request->estado === 'cancelado' && $pedido->estado === 'pendiente') {
             $pedido->update(['estado' => 'cancelado']);
             return response()->json($pedido);
         }
 
         // Admin u Operador avanzan estados
-        if (in_array($user->role, ['admin', 'operador_restaurante'])) {
-            if (in_array($request->estado, ['en_preparacion', 'entregado', 'cancelado'])) {
+        if ($user->isAdmin() || $user->isRestaurante()) {
+            if (in_array($request->estado, ['preparacion', 'entregado', 'cancelado'])) {
                 $pedido->update(['estado' => $request->estado]);
                 return response()->json($pedido);
             }
@@ -109,15 +109,14 @@ class PedidoController extends Controller
         return response()->json(['error' => 'No tienes permisos para este cambio.'], 403);
     }
 
-    // Método para guardar pedidos desde el menú digital (web)
+    // Guardar pedidos desde el menú digital (web)
     public function storeWeb(Request $request)
     {
         $request->validate([
-            'metodo_pago' => 'required|string',
-            'items' => 'required|array|min:1',
+            'items'               => 'required|array|min:1',
             'items.*.platillo_id' => 'required|integer',
-            'items.*.cantidad' => 'required|integer|min:1',
-            'items.*.precio' => 'required|numeric|min:0',
+            'items.*.cantidad'    => 'required|integer|min:1',
+            'items.*.precio'      => 'required|numeric|min:0',
         ]);
 
         return DB::transaction(function () use ($request) {
@@ -127,20 +126,21 @@ class PedidoController extends Controller
                 $total += $item['precio'] * $item['cantidad'];
             }
 
-            // Usar restaurante_id 1 (Cafetería SENA) por defecto
+            $restauranteId = Restaurante::value('id') ?? 1;
+
             $pedido = Pedido::create([
-                'user_id' => auth()->id(),
-                'restaurante_id' => 1,
-                'metodo_pago' => $request->metodo_pago,
-                'total' => $total,
-                'estado' => 'pendiente',
+                'usuario_id'     => auth()->id(),
+                'restaurante_id' => $restauranteId,
+                'total'          => $total,
+                'estado'         => 'pendiente',
+                'fecha_pedido'   => now(),
             ]);
 
             foreach ($request->items as $item) {
                 DetallePedido::create([
-                    'pedido_id' => $pedido->id,
-                    'platillo_id' => $item['platillo_id'],
-                    'cantidad' => $item['cantidad'],
+                    'pedido_id'       => $pedido->id,
+                    'platillo_id'     => $item['platillo_id'],
+                    'cantidad'        => $item['cantidad'],
                     'precio_unitario' => $item['precio'],
                 ]);
             }

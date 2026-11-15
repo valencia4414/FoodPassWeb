@@ -359,7 +359,7 @@
                     <button @click="abrirConfirmacion = true; abrirCarrito = false;" :disabled="carrito.length === 0"
                         :class="carrito.length === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-fp-orange hover:bg-fp-bronze'"
                         class="w-full text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
-                        <span>Proceder a pagar</span>
+                        <span>Confirmar pedido</span>
                         <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
                     </button>
                 </div>
@@ -374,7 +374,7 @@
             @click.away="abrirConfirmacion = false">
 
             <h3 class="text-xl font-bold text-fp-darkgreen mb-1">Resumen del Pedido</h3>
-            <p class="text-xs text-gray-500 mb-4">Verifica tus productos y selecciona el método de pago.</p>
+            <p class="text-xs text-gray-500 mb-4">Verifica tus productos antes de confirmar.</p>
 
             <!-- Resumen de items -->
             <div class="max-h-40 overflow-y-auto mb-4 border-y border-gray-100 py-2 space-y-2">
@@ -387,28 +387,8 @@
                 </template>
             </div>
 
-            <!-- Selector de Método de Pago -->
-            <div class="mb-6">
-                <label class="block text-xs font-bold uppercase tracking-wider text-fp-darkgreen mb-2">Método de
-                    Pago:</label>
-                <div class="grid grid-cols-2 gap-2">
-                    <button @click="metodoPago = 'Efectivo'"
-                        :class="metodoPago === 'Efectivo' ? 'border-fp-orange bg-fp-orange/10 text-fp-orange font-bold' : 'border-gray-200 text-gray-600'"
-                        class="p-2 border rounded-xl text-xs text-center transition-all">Efectivo (Caja)</button>
-                    <button @click="metodoPago = 'Nequi'"
-                        :class="metodoPago === 'Nequi' ? 'border-fp-orange bg-fp-orange/10 text-fp-orange font-bold' : 'border-gray-200 text-gray-600'"
-                        class="p-2 border rounded-xl text-xs text-center transition-all">Nequi</button>
-                    <button @click="metodoPago = 'Transferencia'"
-                        :class="metodoPago === 'Transferencia' ? 'border-fp-orange bg-fp-orange/10 text-fp-orange font-bold' : 'border-gray-200 text-gray-600'"
-                        class="p-2 border rounded-xl text-xs text-center transition-all">Transferencia</button>
-                    <button @click="metodoPago = 'Bono SENA'"
-                        :class="metodoPago === 'Bono SENA' ? 'border-fp-green bg-fp-green/10 text-fp-green font-bold' : 'border-gray-200 text-gray-600'"
-                        class="p-2 border rounded-xl text-xs text-center transition-all">Bono SENA (Canje)</button>
-                </div>
-            </div>
-
             <div class="flex justify-between items-center mb-6 text-base font-bold text-fp-darkgreen">
-                <span>Total a Pagar:</span>
+                <span>Total del Pedido:</span>
                 <span class="text-xl text-fp-orange" x-text="'$' + totalPrecio.toLocaleString('es-CO')"></span>
             </div>
 
@@ -437,7 +417,7 @@
                 abrirCarrito: false,
                 abrirConfirmacion: false,
                 platilloSeleccionado: null,
-                metodoPago: 'Efectivo',
+                metodoPago: 'Canje QR',
                 carrito: [],
 
                 cumpleFiltro(cat, nombre, desc) {

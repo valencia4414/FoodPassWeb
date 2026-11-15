@@ -98,7 +98,7 @@
                                             </div>
                                             <div>
                                                 <p class="font-medium text-gray-900">{{ $pedido->detalle ?? 'Beneficio Alimentario' }}</p>
-                                                <p class="text-xs text-gray-500">{{ $pedido->tipo == 'canje' ? 'Canje Único' : 'Compra (Valor: $'.number_format($pedido->total, 2).')' }}</p>
+                                                <p class="text-xs text-gray-500">{{ $pedido->tipo == 'canje' ? 'Canje QR' : 'Compra (Valor: $'.number_format($pedido->total, 2).')' }}</p>
                                             </div>
                                         </div>
                                     </td>

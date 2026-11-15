@@ -6,7 +6,6 @@ use App\Models\Platillo;
 use App\Models\Restaurante;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 
 class MenuDigitalController extends Controller
 {
@@ -14,31 +13,26 @@ class MenuDigitalController extends Controller
     {
         $usuario = Auth::user();
 
-        // Restaurante activo (Cafetería SENA)
-        $restaurante = Restaurante::where('activo', true)->first();
+        // Restaurante principal (Cafetería SENA)
+        $restaurante = Restaurante::first();
 
         // Filtro de categoría desde el tab activo
         $categoriaActiva = $request->get('categoria', 'todos');
 
-        // Tarea 9: Quitamos "where disponible = true" para poder mostrar platillos AGOTADOS
-        $platillos = Cache::remember('menu_del_dia', 300, function () {
-            return Platillo::orderBy('categoria')->orderBy('nombre')->get();
-        });
-
-        if ($restaurante) {
-            $platillos = $platillos->where('restaurante_id', $restaurante->id);
-        }
+        // Cargar platillos con su categoría
+        $platillos = Platillo::with('categoriaRelacion')
+            ->when($restaurante, fn($q) => $q->where('restaurante_id', $restaurante->id))
+            ->orderBy('nombre')
+            ->get();
 
         if ($categoriaActiva !== 'todos') {
-            $platillos = $platillos->where('categoria', $categoriaActiva);
+            $platillos = $platillos->filter(function ($item) use ($categoriaActiva) {
+                return strtolower($item->categoria) === strtolower($categoriaActiva);
+            })->values();
         }
 
-        $platillos = $platillos->values();
-
-        // Platillo hero: primer plato fuerte disponible
-        $platilloHero = Platillo::where('categoria', 'plato_fuerte')
-            ->when($restaurante, fn($q) => $q->where('restaurante_id', $restaurante->id))
-            ->first();
+        // Platillo hero destacado
+        $platilloHero = $platillos->firstWhere('disponible', true) ?? $platillos->first();
 
         return view('men_digital_foodpass.menu_digital', compact(
             'usuario',

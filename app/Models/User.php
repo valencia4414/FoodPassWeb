@@ -2,85 +2,115 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Hash;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
-        protected $fillable = [
+    protected $table = 'usuarios';
+
+    const CREATED_AT = 'creado_en';
+    const UPDATED_AT = 'actualizado_en';
+
+    protected $fillable = [
+        'nombre',
         'name',
         'email',
         'password',
-        'role',
-        'es_beneficiario_sena',
-        'telefono',
-        'direccion',
-        'idioma_preferido',
-        'foto_perfil',
-        'membresia',
-        'fecha_renovacion_membresia',
-        'puntos_fp',
-        'google2fa_secret',
-        'google2fa_enabled',
+        'password_hash',
+        'documento',
+        'activo',
+        'remember_token',
     ];
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
-        protected $hidden = [
+
+    protected $hidden = [
+        'password_hash',
         'password',
         'remember_token',
-        'google2fa_secret',
     ];
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-       protected function casts(): array
+
+    protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'es_beneficiario_sena' => 'boolean',
-            'google2fa_enabled' => 'boolean',
+            'activo' => 'boolean',
+            'creado_en' => 'datetime',
+            'actualizado_en' => 'datetime',
         ];
     }
 
     /**
-     * Funciones de ayuda para verificar roles de seguridad
+     * Mapeo de autenticación para password_hash
      */
+    public function getAuthPasswordName(): string
+    {
+        return 'password_hash';
+    }
+
+    public function getAuthPassword()
+    {
+        return $this->password_hash;
+    }
+
+    /**
+     * Accesores y mutadores para compatibilidad 'name' <-> 'nombre'
+     */
+    public function getNameAttribute(): string
+    {
+        return $this->attributes['nombre'] ?? '';
+    }
+
+    public function setNameAttribute($value): void
+    {
+        $this->attributes['nombre'] = $value;
+    }
+
+    public function setPasswordAttribute($value): void
+    {
+        $this->attributes['password_hash'] = Hash::needsRehash($value) ? Hash::make($value) : $value;
+    }
+
+    public function getFotoPerfilAttribute()
+    {
+        return null;
+    }
+
+    /**
+     * Relación de roles mediante rol_usuario
+     */
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'rol_usuario', 'usuario_id', 'rol_id');
+    }
+
+    public function getRoleAttribute(): string
+    {
+        return $this->roles->first()?->nombre ?? 'cliente';
+    }
+
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->roles()->where('nombre', 'admin')->exists();
     }
 
     public function isRestaurante(): bool
     {
-        return $this->role === 'restaurante' || $this->role === 'operador_restaurante';
+        return $this->roles()->whereIn('nombre', ['restaurante', 'operador_restaurante', 'tecnico'])->exists();
     }
 
     public function isBeneficiario(): bool
     {
-        if ($this->role === 'beneficiario' || (bool) $this->es_beneficiario_sena) {
-            return true;
-        }
-
-        // RF13: Validar contra la tabla beneficiarios_sena
-        return \App\Models\BeneficiarioSena::where('email', $this->email)
+        return BeneficiarioSena::where('email', $this->email)
             ->where('activo', true)
             ->exists();
+    }
+
+    public function getEsBeneficiarioSenaAttribute(): bool
+    {
+        return $this->isBeneficiario();
     }
 
     public function isCliente(): bool
@@ -88,18 +118,13 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === 'cliente';
     }
 
-    public function sendPasswordResetNotification($token)
+    public function canjes()
     {
-        $this->notify(new \App\Notifications\CustomResetPassword($token));
-    }
-
-    public function sendEmailVerificationNotification()
-    {
-        $this->notify(new \App\Notifications\CustomVerifyEmail());
+        return $this->hasMany(Canje::class, 'usuario_id');
     }
 
     public function pedidos()
     {
-        return $this->hasMany(Pedido::class, 'user_id', 'id');
+        return $this->hasMany(Pedido::class, 'usuario_id');
     }
 }
