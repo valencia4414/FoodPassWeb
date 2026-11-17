@@ -523,7 +523,7 @@ CREATE TABLE `rol_usuario` (
 
 LOCK TABLES `rol_usuario` WRITE;
 /*!40000 ALTER TABLE `rol_usuario` DISABLE KEYS */;
-INSERT INTO `rol_usuario` VALUES (1,1),(2,2),(3,4),(4,4);
+INSERT INTO `rol_usuario` VALUES (1,1),(2,2),(3,4),(4,4),(5,4),(6,4);
 /*!40000 ALTER TABLE `rol_usuario` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -579,6 +579,7 @@ CREATE TABLE `sessions` (
 
 LOCK TABLES `sessions` WRITE;
 /*!40000 ALTER TABLE `sessions` DISABLE KEYS */;
+INSERT INTO `sessions` VALUES ('6rcaWVOYid9SAikiAA9OcPG8c2eAfu9bdXDuP5RC',NULL,'127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36','YTozOntzOjY6Il90b2tlbiI7czo0MDoiNnJUcEpvWFdnajF4aFVNQWhPbVNKekxxYmhibjFrVWJROTlSdkdLdiI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MzA6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9yZWdpc3RlciI7czo1OiJyb3V0ZSI7czo4OiJyZWdpc3RlciI7fX0=',1794890885),('7juNOID6WL0QalMxUUy24QLQHWHcGH1iWfSDBl6V',NULL,'127.0.0.1','curl/8.22.0','YTozOntzOjY6Il90b2tlbiI7czo0MDoiYUtJVlBQMVkyQlpnZEFZcGlnUVFvWlo0cnVDVG13WHo1VnpmRDRvciI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6Mjc6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9sb2dpbiI7czo1OiJyb3V0ZSI7czo1OiJsb2dpbiI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=',1794891261),('W7An6gvbR3JhZCii6zOuNyL0DCiupi2qWdt7CUcI',NULL,'127.0.0.1','curl/8.22.0','YTozOntzOjY6Il90b2tlbiI7czo0MDoiYTZZR0RpZ21xZlhKdzlBNGpWQXkzckhtYkN6cGdZaHg2b3phMVFlUyI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6Mjc6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9sb2dpbiI7czo1OiJyb3V0ZSI7czo1OiJsb2dpbiI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=',1794889787);
 /*!40000 ALTER TABLE `sessions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -600,7 +601,7 @@ CREATE TABLE `usuarios` (
   `actualizado_en` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -609,7 +610,7 @@ CREATE TABLE `usuarios` (
 
 LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
-INSERT INTO `usuarios` VALUES (1,'Administrador','admin@foodpass.com','$2y$10$RInsQlOvtQLliv.swdAzw.NImIzvwuRWbMW3mhXvEe85wVLBHNi0q','123456789',1,'2026-11-12 17:02:05','2026-11-17 04:08:02'),(2,'Instructor SENA CEAI','instructor@foodpass.com','$2y$10$RInsQlOvtQLliv.swdAzw.NImIzvwuRWbMW3mhXvEe85wVLBHNi0q','987654321',1,'2026-11-17 04:08:02','2026-11-17 04:08:02'),(3,'Carlos Santiago Aprendiz','carlos.aprendiz@soy.sena.edu.co','$2y$10$RInsQlOvtQLliv.swdAzw.NImIzvwuRWbMW3mhXvEe85wVLBHNi0q','1005894321',1,'2026-11-17 04:08:02','2026-11-17 09:26:50'),(4,'Juan Aprendiz Regular','aprendiz@foodpass.com','$2y$10$RInsQlOvtQLliv.swdAzw.NImIzvwuRWbMW3mhXvEe85wVLBHNi0q','1006999888',1,'2026-11-17 04:08:02','2026-11-17 04:08:02');
+INSERT INTO `usuarios` VALUES (1,'Administrador SENA FoodPass','admin@foodpass.com','$2y$10$RInsQlOvtQLliv.swdAzw.NImIzvwuRWbMW3mhXvEe85wVLBHNi0q','123456789',1,'2026-11-12 17:02:05','2026-11-17 09:44:38'),(2,'Instructor SENA CEAI','instructor@foodpass.com','$2y$10$RInsQlOvtQLliv.swdAzw.NImIzvwuRWbMW3mhXvEe85wVLBHNi0q','987654321',1,'2026-11-17 04:08:02','2026-11-17 04:08:02'),(3,'Carlos Santiago Aprendiz','carlos.aprendiz@soy.sena.edu.co','$2y$10$RInsQlOvtQLliv.swdAzw.NImIzvwuRWbMW3mhXvEe85wVLBHNi0q','1005894321',1,'2026-11-17 04:08:02','2026-11-17 09:26:50'),(4,'Juan Aprendiz Regular','aprendiz@foodpass.com','$2y$10$RInsQlOvtQLliv.swdAzw.NImIzvwuRWbMW3mhXvEe85wVLBHNi0q','1006999888',1,'2026-11-17 04:08:02','2026-11-17 04:08:02'),(5,'Nuevo Usuario Google Test','prueba.google.1794891211@gmail.com','$2y$12$yYsWBtFpGK9iERtlAkrsx.D9AvqV37Zeu9ROsLCSuXF3FRYiaCuR6',NULL,1,'2026-11-17 09:53:31','2026-11-17 09:53:31'),(6,'Nuevo Usuario Google Test','prueba.google.1794891250@gmail.com','$2y$12$bzp6XkFlzRdSt/nRp1hB0.SV2BKFNSxnemhCswW.w7s22YpIdGNYW',NULL,1,'2026-11-17 09:54:10','2026-11-17 09:54:10');
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -622,4 +623,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-11-16 23:27:05
+-- Dump completed on 2026-11-16 23:54:42

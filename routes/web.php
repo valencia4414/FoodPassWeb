@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HistorialController;
 use App\Http\Controllers\MenuDigitalController;
@@ -45,6 +46,14 @@ Route::middleware('guest')->group(function () {
         ->name('otp.verify.post');
     Route::post('/otp/resend', [OtpController::class, 'resend'])
         ->name('otp.resend');
+
+    // --- Autenticación y Vinculación con Google ---
+    Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])
+        ->name('auth.google');
+    Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])
+        ->name('auth.google.callback');
+    Route::post('/auth/google/vincular', [GoogleAuthController::class, 'vincularDirecto'])
+        ->name('auth.google.vincular');
 
     // --- Rutas públicas de Recuperación de Contraseña ---
     Route::get('/forgot-password', function () {

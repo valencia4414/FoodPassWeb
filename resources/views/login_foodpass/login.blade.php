@@ -4,6 +4,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>FoodPass - Acceso</title>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -86,9 +87,10 @@
         h1, h2, h3, .font-headline {
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
+        [x-cloak] { display: none !important; }
     </style>
 </head>
-<body class="bg-surface text-on-surface min-h-screen flex items-center justify-center p-6 relative overflow-y-auto">
+<body class="bg-surface text-on-surface min-h-screen flex items-center justify-center p-6 relative overflow-y-auto" x-data="{ modalGoogle: {{ request('google_modal') ? 'true' : 'false' }}, tabGoogle: 'guardadas' }">
 <!-- Background Decoration (Artisanal Ledger Texture) -->
 <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
 <div class="absolute -top-24 -left-24 w-96 h-96 bg-surface-container-high rounded-full blur-3xl opacity-50"></div>
@@ -172,15 +174,133 @@
 </div>
 <!-- Social Login -->
 <div class="grid grid-cols-1 gap-4">
-<button class="flex items-center justify-center gap-3 w-full py-4 px-4 bg-surface-container-low hover:bg-surface-container-high text-on-surface font-semibold rounded-xl border border-outline-variant/10 transition-colors duration-200" type="button">
+<button @click="modalGoogle = true" class="flex items-center justify-center gap-3 w-full py-4 px-4 bg-surface-container-low hover:bg-surface-container-high text-on-surface font-semibold rounded-xl border border-outline-variant/10 transition-colors duration-200 cursor-pointer shadow-sm hover:shadow active:scale-[0.99]" type="button">
 <svg class="w-5 h-5" viewbox="0 0 24 24">
 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
 </svg>
-<span class="font-body">Google</span>
+<span class="font-body">Continuar con Google</span>
 </button>
+</div>
+
+<!-- ── MODAL SELECTOR Y VINCULADOR DE CUENTA GOOGLE ── -->
+<div x-show="modalGoogle" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" x-transition>
+    <div class="bg-white rounded-3xl max-w-md w-full p-7 shadow-2xl relative border border-gray-100 font-sans" @click.away="modalGoogle = false">
+        
+        <!-- Cabecera Oficial de Google -->
+        <div class="text-center mb-6">
+            <svg class="w-9 h-9 mx-auto mb-3" viewBox="0 0 24 24">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
+            </svg>
+            <h3 class="text-xl font-bold text-gray-900 tracking-tight">Iniciar sesión con Google</h3>
+            <p class="text-xs text-gray-500 mt-1">Elige una cuenta del navegador para entrar a FoodPass o vincula una nueva.</p>
+        </div>
+
+        <!-- Pestañas de Opción -->
+        <div class="flex rounded-xl bg-gray-100 p-1 mb-5 text-xs font-bold">
+            <button type="button" @click="tabGoogle = 'guardadas'" 
+                    class="flex-1 py-2 rounded-lg transition-all cursor-pointer"
+                    :class="tabGoogle === 'guardadas' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'">
+                Cuentas del Navegador
+            </button>
+            <button type="button" @click="tabGoogle = 'otra'" 
+                    class="flex-1 py-2 rounded-lg transition-all cursor-pointer"
+                    :class="tabGoogle === 'otra' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'">
+                Usar / Vincular Otra
+            </button>
+        </div>
+
+        <!-- TAB 1: Cuentas detectadas en el navegador -->
+        <div x-show="tabGoogle === 'guardadas'" class="space-y-2.5">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Selecciona tu cuenta activa:</p>
+            
+            @if(isset($cuentasGoogleSugeridas) && $cuentasGoogleSugeridas->count() > 0)
+                <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                    @foreach($cuentasGoogleSugeridas as $cuenta)
+                        <form action="{{ route('auth.google.vincular') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="email" value="{{ $cuenta->email }}">
+                            <input type="hidden" name="nombre" value="{{ $cuenta->name }}">
+                            <button type="submit" 
+                                    class="w-full flex items-center justify-between p-3 rounded-2xl border border-gray-200 hover:border-[#4285F4] hover:bg-blue-50/40 transition-all text-left group cursor-pointer shadow-sm">
+                                <div class="flex items-center gap-3 overflow-hidden">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-[#4285F4] to-[#34A853] text-white flex items-center justify-center font-bold text-sm shadow-sm shrink-0">
+                                        {{ strtoupper(substr($cuenta->name, 0, 1)) }}
+                                    </div>
+                                    <div class="overflow-hidden">
+                                        <p class="font-bold text-gray-900 text-xs truncate group-hover:text-[#4285F4] transition-colors">{{ $cuenta->name }}</p>
+                                        <p class="text-gray-500 text-[11px] truncate font-mono">{{ $cuenta->email }}</p>
+                                    </div>
+                                </div>
+                                <span class="material-symbols-outlined text-gray-400 group-hover:text-[#4285F4] text-lg">chevron_right</span>
+                            </button>
+                        </form>
+                    @endforeach
+                </div>
+            @else
+                <div class="p-4 bg-gray-50 rounded-2xl text-center text-xs text-gray-500">
+                    No se encontraron cuentas locales guardadas. Puedes vincular una a continuación.
+                </div>
+            @endif
+
+            <button type="button" @click="tabGoogle = 'otra'" class="w-full mt-3 py-2 text-center text-xs text-[#4285F4] hover:underline font-bold flex items-center justify-center gap-1 cursor-pointer">
+                <span class="material-symbols-outlined text-[16px]">person_add</span>
+                <span>Usar otra cuenta de Google</span>
+            </button>
+        </div>
+
+        <!-- TAB 2: Vincular o Ingresar otra cuenta Google -->
+        <div x-show="tabGoogle === 'otra'" x-cloak class="space-y-4">
+            <form action="{{ route('auth.google.vincular') }}" method="POST" class="space-y-3.5">
+                @csrf
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Correo de Google (@gmail.com o @soy.sena.edu.co) *</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">mail</span>
+                        <input type="email" name="email" required placeholder="tu.cuenta@gmail.com" 
+                               class="w-full pl-10 pr-3 py-2.5 rounded-xl border border-gray-300 text-xs focus:ring-[#4285F4] focus:border-[#4285F4]">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Nombre Completo (Opcional)</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">badge</span>
+                        <input type="text" name="nombre" placeholder="Ej: Mi Nombre" 
+                               class="w-full pl-10 pr-3 py-2.5 rounded-xl border border-gray-300 text-xs focus:ring-[#4285F4] focus:border-[#4285F4]">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-3 bg-[#4285F4] hover:bg-[#3367D6] text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px]">login</span>
+                    <span>Vincular y Continuar con Google</span>
+                </button>
+            </form>
+
+            <button type="button" @click="tabGoogle = 'guardadas'" class="w-full py-1 text-center text-xs text-gray-500 hover:text-gray-800 font-semibold cursor-pointer">
+                ← Volver a cuentas guardadas
+            </button>
+        </div>
+
+        <!-- Opción para OAuth Oficial si está configurado en .env -->
+        <div class="mt-6 pt-4 border-t border-gray-100 flex flex-col gap-2">
+            <a href="{{ route('auth.google') }}" 
+               class="w-full py-2.5 px-3 rounded-xl border border-gray-200 hover:bg-gray-50 text-[11px] font-bold text-gray-600 flex items-center justify-center gap-2 transition-colors">
+                <span class="material-symbols-outlined text-sm text-gray-500">open_in_new</span>
+                <span>Conectar mediante Google OAuth Oficial</span>
+            </a>
+
+            <button type="button" @click="modalGoogle = false" class="text-xs text-gray-400 hover:text-gray-700 py-1 font-semibold text-center cursor-pointer">
+                Cancelar
+            </button>
+        </div>
+
+    </div>
 </div>
 <!-- Footer Link -->
 <p class="text-center mt-10 text-on-surface-variant font-medium">

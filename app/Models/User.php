@@ -55,6 +55,21 @@ class User extends Authenticatable
         return $this->password_hash;
     }
 
+    public function getRememberTokenName(): string
+    {
+        return '';
+    }
+
+    public function getRememberToken()
+    {
+        return null;
+    }
+
+    public function setRememberToken($value): void
+    {
+        // No-op para compatibilidad con esquema V2 (sin columna remember_token)
+    }
+
     /**
      * Accesores y mutadores para compatibilidad 'name' <-> 'nombre'
      */
