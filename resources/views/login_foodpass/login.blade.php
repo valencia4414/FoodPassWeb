@@ -90,7 +90,62 @@
         [x-cloak] { display: none !important; }
     </style>
 </head>
-<body class="bg-surface text-on-surface min-h-screen flex items-center justify-center p-6 relative overflow-y-auto" x-data="{ modalGoogle: {{ request('google_modal') ? 'true' : 'false' }}, tabGoogle: 'guardadas' }">
+<body class="bg-surface text-on-surface min-h-screen flex items-center justify-center p-6 relative overflow-y-auto" 
+      x-data="{ 
+          modalGoogle: {{ request('google_modal') ? 'true' : 'false' }}, 
+          googlePaso: 1,
+          googleEmail: '',
+          googlePassword: '',
+          googleNombre: '',
+          mostrarPassword: false,
+          errorEmail: '',
+          cargandoGoogle: false,
+          cuentaRecordada: null,
+          init() {
+              try {
+                  const saved = localStorage.getItem('google_last_account');
+                  if (saved) {
+                      this.cuentaRecordada = JSON.parse(saved);
+                  }
+              } catch (e) {}
+          },
+          iniciarPasoEmail() {
+              this.errorEmail = '';
+              const email = this.googleEmail.trim();
+              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+              if (!email || !emailRegex.test(email)) {
+                  this.errorEmail = 'Introduce una dirección de correo válida (ej: usuario@gmail.com o @soy.sena.edu.co)';
+                  return;
+              }
+              this.googlePaso = 2;
+          },
+          usarCuentaRecordada() {
+              if (this.cuentaRecordada && this.cuentaRecordada.email) {
+                  this.googleEmail = this.cuentaRecordada.email;
+                  this.googleNombre = this.cuentaRecordada.name || '';
+                  this.googlePaso = 2;
+              }
+          },
+          olvidarCuentaRecordada() {
+              localStorage.removeItem('google_last_account');
+              this.cuentaRecordada = null;
+              this.googleEmail = '';
+              this.googlePaso = 1;
+          },
+          enviarGoogle() {
+              this.cargandoGoogle = true;
+              this.googlePaso = 3;
+              try {
+                  localStorage.setItem('google_last_account', JSON.stringify({
+                      email: this.googleEmail.trim(),
+                      name: this.googleNombre.trim() || this.googleEmail.split('@')[0]
+                  }));
+              } catch (e) {}
+              setTimeout(() => {
+                  document.getElementById('form-google-directo').submit();
+              }, 1000);
+          }
+      }">
 <!-- Background Decoration (Artisanal Ledger Texture) -->
 <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
 <div class="absolute -top-24 -left-24 w-96 h-96 bg-surface-container-high rounded-full blur-3xl opacity-50"></div>
@@ -113,7 +168,7 @@
 @csrf
 
 {{-- Aviso visual de credenciales incorrectas o errores --}}
-@if ($errors->any())
+@if (isset($errors) && $errors->any())
 <div class="px-4 py-3 bg-error-container text-on-error-container border border-error/30 rounded-xl text-sm font-semibold flex items-center gap-2.5 shadow-sm animate-pulse">
     <span class="material-symbols-outlined text-lg shrink-0">error</span>
     <span>Correo o contraseña incorrectos.</span>
@@ -185,119 +240,164 @@
 </button>
 </div>
 
-<!-- ── MODAL SELECTOR Y VINCULADOR DE CUENTA GOOGLE ── -->
+<!-- ── MODAL SIMULACIÓN OFICIAL GOOGLE SIGN-IN ── -->
 <div x-show="modalGoogle" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" x-transition>
-    <div class="bg-white rounded-3xl max-w-md w-full p-7 shadow-2xl relative border border-gray-100 font-sans" @click.away="modalGoogle = false">
+    <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative border border-gray-100 font-sans text-gray-800" @click.away="modalGoogle = false">
         
+        <!-- Botón cerrar modal -->
+        <button type="button" @click="modalGoogle = false" class="absolute top-5 right-5 text-gray-400 hover:text-gray-600 rounded-full p-1.5 transition-colors">
+            <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+
         <!-- Cabecera Oficial de Google -->
         <div class="text-center mb-6">
-            <svg class="w-9 h-9 mx-auto mb-3" viewBox="0 0 24 24">
+            <svg class="w-8 h-8 mx-auto mb-3" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
             </svg>
-            <h3 class="text-xl font-bold text-gray-900 tracking-tight">Iniciar sesión con Google</h3>
-            <p class="text-xs text-gray-500 mt-1">Elige una cuenta del navegador para entrar a FoodPass o vincula una nueva.</p>
+            <h3 class="text-2xl font-medium text-gray-900 tracking-tight" x-show="googlePaso === 1">Acceder</h3>
+            <h3 class="text-2xl font-medium text-gray-900 tracking-tight" x-show="googlePaso === 2">Te damos la bienvenida</h3>
+            <h3 class="text-2xl font-medium text-gray-900 tracking-tight" x-show="googlePaso === 3">Iniciando sesión...</h3>
+            <p class="text-sm text-gray-600 mt-1">para continuar en <strong class="text-[#2F9B34] font-semibold">FoodPass SENA</strong></p>
         </div>
 
-        <!-- Pestañas de Opción -->
-        <div class="flex rounded-xl bg-gray-100 p-1 mb-5 text-xs font-bold">
-            <button type="button" @click="tabGoogle = 'guardadas'" 
-                    class="flex-1 py-2 rounded-lg transition-all cursor-pointer"
-                    :class="tabGoogle === 'guardadas' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'">
-                Cuentas del Navegador
-            </button>
-            <button type="button" @click="tabGoogle = 'otra'" 
-                    class="flex-1 py-2 rounded-lg transition-all cursor-pointer"
-                    :class="tabGoogle === 'otra' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'">
-                Usar / Vincular Otra
-            </button>
-        </div>
+        <!-- ── PASO 1: Ingreso o selección de cuenta Google ── -->
+        <div x-show="googlePaso === 1" class="space-y-5">
+            <!-- Si hay cuenta recordada previamente en este navegador -->
+            <template x-if="cuentaRecordada && cuentaRecordada.email">
+                <div class="mb-4">
+                    <p class="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">Cuenta detectada en este equipo:</p>
+                    <div @click="usarCuentaRecordada()" class="flex items-center justify-between p-3.5 rounded-2xl border border-gray-200 hover:border-blue-500 hover:bg-blue-50/30 transition-all cursor-pointer group shadow-sm">
+                        <div class="flex items-center gap-3 overflow-hidden">
+                            <div class="w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm shadow-sm shrink-0 uppercase" x-text="cuentaRecordada.email.charAt(0)"></div>
+                            <div class="overflow-hidden text-left">
+                                <p class="text-xs font-bold text-gray-900 truncate" x-text="cuentaRecordada.name || cuentaRecordada.email"></p>
+                                <p class="text-[11px] text-gray-500 truncate" x-text="cuentaRecordada.email"></p>
+                            </div>
+                        </div>
+                        <span class="material-symbols-outlined text-gray-400 group-hover:text-blue-600">arrow_forward</span>
+                    </div>
 
-        <!-- TAB 1: Cuentas detectadas en el navegador -->
-        <div x-show="tabGoogle === 'guardadas'" class="space-y-2.5">
-            <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Selecciona tu cuenta activa:</p>
-            
-            @if(isset($cuentasGoogleSugeridas) && $cuentasGoogleSugeridas->count() > 0)
-                <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
-                    @foreach($cuentasGoogleSugeridas as $cuenta)
-                        <form action="{{ route('auth.google.vincular') }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="email" value="{{ $cuenta->email }}">
-                            <input type="hidden" name="nombre" value="{{ $cuenta->name }}">
-                            <button type="submit" 
-                                    class="w-full flex items-center justify-between p-3 rounded-2xl border border-gray-200 hover:border-[#4285F4] hover:bg-blue-50/40 transition-all text-left group cursor-pointer shadow-sm">
-                                <div class="flex items-center gap-3 overflow-hidden">
-                                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-[#4285F4] to-[#34A853] text-white flex items-center justify-center font-bold text-sm shadow-sm shrink-0">
-                                        {{ strtoupper(substr($cuenta->name, 0, 1)) }}
-                                    </div>
-                                    <div class="overflow-hidden">
-                                        <p class="font-bold text-gray-900 text-xs truncate group-hover:text-[#4285F4] transition-colors">{{ $cuenta->name }}</p>
-                                        <p class="text-gray-500 text-[11px] truncate font-mono">{{ $cuenta->email }}</p>
-                                    </div>
-                                </div>
-                                <span class="material-symbols-outlined text-gray-400 group-hover:text-[#4285F4] text-lg">chevron_right</span>
-                            </button>
-                        </form>
-                    @endforeach
-                </div>
-            @else
-                <div class="p-4 bg-gray-50 rounded-2xl text-center text-xs text-gray-500">
-                    No se encontraron cuentas locales guardadas. Puedes vincular una a continuación.
-                </div>
-            @endif
-
-            <button type="button" @click="tabGoogle = 'otra'" class="w-full mt-3 py-2 text-center text-xs text-[#4285F4] hover:underline font-bold flex items-center justify-center gap-1 cursor-pointer">
-                <span class="material-symbols-outlined text-[16px]">person_add</span>
-                <span>Usar otra cuenta de Google</span>
-            </button>
-        </div>
-
-        <!-- TAB 2: Vincular o Ingresar otra cuenta Google -->
-        <div x-show="tabGoogle === 'otra'" x-cloak class="space-y-4">
-            <form action="{{ route('auth.google.vincular') }}" method="POST" class="space-y-3.5">
-                @csrf
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1">Correo de Google (@gmail.com o @soy.sena.edu.co) *</label>
-                    <div class="relative">
-                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">mail</span>
-                        <input type="email" name="email" required placeholder="tu.cuenta@gmail.com" 
-                               class="w-full pl-10 pr-3 py-2.5 rounded-xl border border-gray-300 text-xs focus:ring-[#4285F4] focus:border-[#4285F4]">
+                    <div class="flex justify-between items-center mt-2 px-1 text-xs">
+                        <button type="button" @click="olvidarCuentaRecordada()" class="text-gray-400 hover:text-red-500 transition-colors">
+                            Quitar cuenta
+                        </button>
+                        <span class="text-gray-300">|</span>
+                        <button type="button" @click="cuentaRecordada = null; googleEmail = '';" class="text-blue-600 hover:underline font-medium">
+                            Usar otra cuenta
+                        </button>
                     </div>
                 </div>
+            </template>
 
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1">Nombre Completo (Opcional)</label>
-                    <div class="relative">
-                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">badge</span>
-                        <input type="text" name="nombre" placeholder="Ej: Mi Nombre" 
-                               class="w-full pl-10 pr-3 py-2.5 rounded-xl border border-gray-300 text-xs focus:ring-[#4285F4] focus:border-[#4285F4]">
+            <!-- Campo de entrada para cuenta de Google (cuando no se elige recordada) -->
+            <template x-if="!cuentaRecordada || !cuentaRecordada.email">
+                <div class="space-y-4">
+                    <div>
+                        <div class="relative">
+                            <input type="email" 
+                                   x-model="googleEmail" 
+                                   @keydown.enter.prevent="iniciarPasoEmail()"
+                                   placeholder="Correo electrónico o teléfono"
+                                   class="w-full px-4 py-3.5 rounded-xl border border-gray-300 text-sm focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all outline-none"
+                                   :class="errorEmail ? 'border-red-500 bg-red-50/20' : ''"
+                                   autofocus>
+                        </div>
+                        <p x-show="errorEmail" x-text="errorEmail" class="text-xs text-red-600 mt-1.5 flex items-center gap-1 font-medium"></p>
+                    </div>
+
+                    <div>
+                        <input type="text" 
+                               x-model="googleNombre" 
+                               @keydown.enter.prevent="iniciarPasoEmail()"
+                               placeholder="Nombre completo (opcional)"
+                               class="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs text-gray-700 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 transition-all outline-none">
+                    </div>
+
+                    <div class="text-xs text-gray-500 leading-relaxed">
+                        ¿No es tu ordenador? Usa una ventana privada para iniciar sesión. <a href="https://support.google.com/accounts?p=signin_privatebrowsing" target="_blank" class="text-blue-600 font-medium hover:underline">Más información</a>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-4">
+                        <a href="{{ route('register') }}" class="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline">
+                            Crear cuenta
+                        </a>
+                        <button type="button" 
+                                @click="iniciarPasoEmail()"
+                                class="bg-[#1a73e8] hover:bg-[#1557b0] text-white font-medium text-sm px-6 py-2.5 rounded-xl shadow transition-all cursor-pointer">
+                            Siguiente
+                        </button>
                     </div>
                 </div>
+            </template>
+        </div>
 
-                <button type="submit" class="w-full py-3 bg-[#4285F4] hover:bg-[#3367D6] text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer">
-                    <span class="material-symbols-outlined text-[18px]">login</span>
-                    <span>Vincular y Continuar con Google</span>
+        <!-- ── PASO 2: Contraseña y Verificación ── -->
+        <div x-show="googlePaso === 2" x-cloak class="space-y-5">
+            <!-- Chip de cuenta activa -->
+            <button type="button" @click="googlePaso = 1" class="w-full flex items-center justify-center gap-2 py-1.5 px-3 rounded-full border border-gray-200 hover:bg-gray-50 text-xs text-gray-700 mx-auto transition-colors cursor-pointer max-w-xs">
+                <span class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 uppercase" x-text="googleEmail.charAt(0)"></span>
+                <span class="truncate font-medium" x-text="googleEmail"></span>
+                <span class="material-symbols-outlined text-sm text-gray-500">expand_more</span>
+            </button>
+
+            <div>
+                <label class="block text-xs text-gray-600 mb-1.5 font-medium">Introduce tu contraseña de Google</label>
+                <div class="relative">
+                    <input :type="mostrarPassword ? 'text' : 'password'" 
+                           x-model="googlePassword"
+                           @keydown.enter.prevent="enviarGoogle()"
+                           placeholder="Contraseña"
+                           class="w-full px-4 py-3.5 rounded-xl border border-gray-300 text-sm focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all outline-none"
+                           autofocus>
+                </div>
+                <div class="flex items-center gap-2 mt-2">
+                    <input type="checkbox" id="show-pwd" x-model="mostrarPassword" class="rounded text-blue-600 focus:ring-blue-500 cursor-pointer">
+                    <label for="show-pwd" class="text-xs text-gray-600 cursor-pointer select-none">Mostrar contraseña</label>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-4">
+                <button type="button" @click="googlePaso = 1" class="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline cursor-pointer">
+                    Atrás
                 </button>
-            </form>
-
-            <button type="button" @click="tabGoogle = 'guardadas'" class="w-full py-1 text-center text-xs text-gray-500 hover:text-gray-800 font-semibold cursor-pointer">
-                ← Volver a cuentas guardadas
-            </button>
+                <button type="button" 
+                        @click="enviarGoogle()"
+                        class="bg-[#1a73e8] hover:bg-[#1557b0] text-white font-medium text-sm px-6 py-2.5 rounded-xl shadow transition-all cursor-pointer flex items-center gap-1.5">
+                    <span>Siguiente</span>
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                </button>
+            </div>
         </div>
+
+        <!-- ── PASO 3: Animación de Carga de Google ── -->
+        <div x-show="googlePaso === 3" x-cloak class="py-8 text-center space-y-4">
+            <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden relative">
+                <div class="h-full bg-gradient-to-r from-[#4285F4] via-[#34A853] via-[#FBBC05] to-[#EA4335] animate-pulse w-full"></div>
+            </div>
+
+            <div class="w-12 h-12 rounded-full border-4 border-blue-500 border-t-transparent animate-spin mx-auto mt-6"></div>
+
+            <p class="text-sm font-semibold text-gray-800">Conectando con tu cuenta de Google...</p>
+            <p class="text-xs text-gray-500" x-text="googleEmail"></p>
+        </div>
+
+        <!-- Formulario oculto enviado a backend -->
+        <form id="form-google-directo" action="{{ route('auth.google.vincular') }}" method="POST" class="hidden">
+            @csrf
+            <input type="hidden" name="email" :value="googleEmail">
+            <input type="hidden" name="nombre" :value="googleNombre">
+        </form>
 
         <!-- Opción para OAuth Oficial si está configurado en .env -->
         <div class="mt-6 pt-4 border-t border-gray-100 flex flex-col gap-2">
             <a href="{{ route('auth.google') }}" 
-               class="w-full py-2.5 px-3 rounded-xl border border-gray-200 hover:bg-gray-50 text-[11px] font-bold text-gray-600 flex items-center justify-center gap-2 transition-colors">
+               class="w-full py-2 px-3 rounded-xl border border-gray-200 hover:bg-gray-50 text-[11px] font-medium text-gray-600 flex items-center justify-center gap-1.5 transition-colors">
                 <span class="material-symbols-outlined text-sm text-gray-500">open_in_new</span>
-                <span>Conectar mediante Google OAuth Oficial</span>
+                <span>Usar ventana emergente de Google OAuth</span>
             </a>
-
-            <button type="button" @click="modalGoogle = false" class="text-xs text-gray-400 hover:text-gray-700 py-1 font-semibold text-center cursor-pointer">
-                Cancelar
-            </button>
         </div>
 
     </div>

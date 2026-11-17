@@ -14,8 +14,7 @@ class LoginController extends Controller
         if (Auth::check()) {
             return redirect()->route('dashboard');
         }
-        $cuentasGoogleSugeridas = \App\Models\User::where('activo', 1)->take(4)->get();
-        return view('login_foodpass.login', compact('cuentasGoogleSugeridas'));
+        return view('login_foodpass.login');
     }
 
     public function login(Request $request, OtpService $otpService)

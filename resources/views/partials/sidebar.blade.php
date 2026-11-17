@@ -1,13 +1,117 @@
 <!-- SideNavBar Shell Reutilizable Oficial FoodPass -->
-<style>[x-cloak] { display: none !important; }</style>
+<style>
+    [x-cloak] { display: none !important; }
+
+    /* Estilos globales de Modo Oscuro para toda la app */
+    html.dark body,
+    html.dark main,
+    html.dark .bg-\[\#f0ffd8\],
+    html.dark .bg-\[\#F8F9FA\],
+    html.dark .bg-fp-light,
+    html.dark .bg-fp-bg,
+    html.dark .bg-background {
+        background-color: #121f05 !important;
+        color: #e8facd !important;
+    }
+    html.dark .bg-white,
+    html.dark .bg-surface-container-lowest,
+    html.dark .bg-surface-bright {
+        background-color: #1b2610 !important;
+        color: #ffffff !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+    html.dark .bg-gray-50,
+    html.dark .bg-gray-100,
+    html.dark .bg-gray-200,
+    html.dark .bg-surface-container-low,
+    html.dark .bg-surface-container {
+        background-color: #223015 !important;
+        color: #e8facd !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+    html.dark .bg-surface-container-high,
+    html.dark .bg-surface-container-highest {
+        background-color: #2a3a1b !important;
+        color: #f0ffd8 !important;
+        border-color: rgba(255, 255, 255, 0.12) !important;
+    }
+    html.dark .text-gray-900,
+    html.dark .text-gray-800,
+    html.dark .text-slate-900,
+    html.dark .text-slate-800,
+    html.dark .text-slate-700,
+    html.dark .text-\[\#121f05\],
+    html.dark .text-\[\#283618\],
+    html.dark .text-on-background,
+    html.dark .text-on-surface,
+    html.dark .text-black {
+        color: #ffffff !important;
+    }
+    html.dark .text-gray-700,
+    html.dark .text-gray-600,
+    html.dark .text-gray-500,
+    html.dark .text-gray-400,
+    html.dark .text-slate-500,
+    html.dark .text-\[\#574237\],
+    html.dark .text-on-surface-variant {
+        color: #c5dbb0 !important;
+    }
+    html.dark .text-fp-dark,
+    html.dark .text-fp-darkgreen {
+        color: #e8facd !important;
+    }
+    html.dark header.bg-white,
+    html.dark header.bg-white\/90,
+    html.dark header.bg-white\/80,
+    html.dark header {
+        background-color: rgba(18, 31, 5, 0.95) !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+    html.dark .border-gray-100,
+    html.dark .border-gray-200,
+    html.dark .border-gray-300,
+    html.dark .border-slate-100,
+    html.dark .border-slate-200,
+    html.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+    html.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+        border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+    html.dark input:not([type="checkbox"]):not([type="radio"]),
+    html.dark select,
+    html.dark textarea {
+        background-color: #263618 !important;
+        color: #ffffff !important;
+        border-color: rgba(255, 255, 255, 0.15) !important;
+    }
+    html.dark input::placeholder,
+    html.dark textarea::placeholder {
+        color: rgba(255, 255, 255, 0.35) !important;
+    }
+    html.dark table thead th {
+        background-color: #202d14 !important;
+        color: #e8facd !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+    html.dark table tbody tr {
+        border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+    html.dark tr.hover\:bg-gray-50\/70:hover,
+    html.dark tr.hover\:bg-gray-50:hover,
+    html.dark .hover\:bg-gray-50:hover,
+    html.dark .hover\:bg-gray-100:hover {
+        background-color: rgba(255, 255, 255, 0.06) !important;
+    }
+</style>
 <script>
     (function() {
         try {
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 document.documentElement.classList.add('dark');
+                document.documentElement.classList.remove('light');
             } else {
                 document.documentElement.classList.remove('dark');
+                document.documentElement.classList.add('light');
             }
         } catch (e) {}
     })();
@@ -90,6 +194,39 @@
             </a>
         @endif
     </nav>
+
+    <!-- Interruptor Rápido de Modo Oscuro Global en Sidebar -->
+    <div class="px-6 py-2.5 border-t border-white/10 flex items-center justify-between"
+         x-data="{
+             isDark: document.documentElement.classList.contains('dark'),
+             toggleSidebarTheme() {
+                 this.isDark = !this.isDark;
+                 if (this.isDark) {
+                     document.documentElement.classList.add('dark');
+                     document.documentElement.classList.remove('light');
+                     localStorage.setItem('theme', 'dark');
+                 } else {
+                     document.documentElement.classList.remove('dark');
+                     document.documentElement.classList.add('light');
+                     localStorage.setItem('theme', 'light');
+                 }
+                 window.dispatchEvent(new CustomEvent('theme-changed', { detail: { dark: this.isDark } }));
+             }
+         }">
+        <div class="flex items-center gap-2 text-white/80">
+            <span class="material-symbols-outlined text-[17px] text-amber-300" x-show="!isDark">light_mode</span>
+            <span class="material-symbols-outlined text-[17px] text-[#F97F2D]" x-show="isDark" x-cloak>dark_mode</span>
+            <span class="text-xs font-semibold" x-text="isDark ? 'Modo Oscuro' : 'Modo Claro'"></span>
+        </div>
+        <button type="button" @click="toggleSidebarTheme()"
+                class="relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border border-white/20 transition-colors duration-200 ease-in-out focus:outline-none"
+                :class="isDark ? 'bg-[#F97F2D]' : 'bg-white/15'"
+                title="Cambiar Modo Claro / Oscuro">
+            <span class="sr-only">Cambiar tema</span>
+            <span class="pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition duration-200 ease-in-out mt-[2px] ml-[2px]"
+                  :class="isDark ? 'translate-x-5' : 'translate-x-0'"></span>
+        </button>
+    </div>
 
     <!-- Usuario autenticado al pie -->
     <div class="mt-auto p-6 border-t border-white/5 relative"

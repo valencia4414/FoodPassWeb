@@ -171,13 +171,17 @@
                                 this.isDark = !this.isDark;
                                 if (this.isDark) {
                                     document.documentElement.classList.add('dark');
+                                    document.documentElement.classList.remove('light');
                                     localStorage.setItem('theme', 'dark');
                                 } else {
                                     document.documentElement.classList.remove('dark');
+                                    document.documentElement.classList.add('light');
                                     localStorage.setItem('theme', 'light');
                                 }
+                                window.dispatchEvent(new CustomEvent('theme-changed', { detail: { dark: this.isDark } }));
                             }
-                         }">
+                         }"
+                         @theme-changed.window="isDark = $event.detail.dark">
                         <div class="flex items-center justify-between mb-3">
                             <span class="text-[10px] font-bold text-[#574237] dark:text-emerald-300 uppercase tracking-widest block">APARIENCIA DEL SISTEMA</span>
                             <span class="material-symbols-outlined text-lg text-amber-500" x-show="!isDark">light_mode</span>
