@@ -42,7 +42,7 @@ class PlatilloController extends Controller
      */
     public function create()
     {
-        $restaurantes = Restaurante::where('activo', true)->orderBy('nombre')->get();
+        $restaurantes = Restaurante::orderBy('nombre')->get();
         return view('admin.platillos.create', compact('restaurantes'));
     }
 
@@ -104,7 +104,7 @@ class PlatilloController extends Controller
      */
     public function edit(Platillo $platillo)
     {
-        $restaurantes = Restaurante::where('activo', true)->orderBy('nombre')->get();
+        $restaurantes = Restaurante::orderBy('nombre')->get();
         return view('admin.platillos.edit', compact('platillo', 'restaurantes'));
     }
 
