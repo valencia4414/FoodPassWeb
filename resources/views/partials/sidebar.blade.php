@@ -1,5 +1,17 @@
 <!-- SideNavBar Shell Reutilizable Oficial FoodPass -->
 <style>[x-cloak] { display: none !important; }</style>
+<script>
+    (function() {
+        try {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        } catch (e) {}
+    })();
+</script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <aside
     class="flex flex-col z-40 h-screen w-64 fixed left-0 top-0 overflow-y-auto bg-[#273517] shadow-2xl font-['Plus_Jakarta_Sans',sans-serif] tracking-wide shrink-0">
