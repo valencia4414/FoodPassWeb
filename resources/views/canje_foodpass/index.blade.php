@@ -119,6 +119,29 @@
                                 </p>
                             </form>
 
+                            <!-- Botón Enviar QR al Correo (Requisito 3) -->
+                            @php
+                                $tieneQrGenerado = $canjesHoy->where('estado', 'pendiente')->isNotEmpty() || !empty($ultimoQr);
+                            @endphp
+                            @if($esBeneficiario && $tieneQrGenerado)
+                                <form id="form-enviar-correo" action="{{ route('canje.enviar-correo') }}" method="POST" class="w-full max-w-md mt-4">
+                                    @csrf
+                                    <button type="button" id="btnEnviarCorreo"
+                                        class="w-full font-bold text-base py-3.5 px-8 rounded-2xl shadow-md transition-all flex items-center justify-center gap-2.5 bg-[#283618] hover:bg-[#1e2a11] text-white hover:-translate-y-0.5 active:translate-y-0 cursor-pointer border border-[#2F9B34]/30">
+                                        <span class="material-symbols-outlined text-[22px] text-[#2F9B34]">mail</span>
+                                        <span>Enviar QR al correo</span>
+                                    </button>
+                                    <p class="text-center text-[11px] text-gray-500 mt-2 font-medium">
+                                        Destino: <strong class="text-gray-700">{{ $user->email }}</strong> (adjunto PNG e incrustado en el cuerpo).
+                                    </p>
+                                </form>
+                            @elseif($esBeneficiario)
+                                <div class="w-full max-w-md mt-4 p-3 bg-amber-50 border border-amber-200 rounded-2xl text-amber-800 text-xs text-center flex items-center justify-center gap-2">
+                                    <span class="material-symbols-outlined text-amber-600 text-base">info</span>
+                                    <span>Genera tu primer código QR para habilitar el envío a tu correo.</span>
+                                </div>
+                            @endif
+
                             @if(session('success'))
                                 <div class="w-full max-w-md mt-4 p-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-xs font-semibold flex items-center gap-2">
                                     <span class="material-symbols-outlined text-green-600 text-[18px]">check_circle</span>
@@ -242,6 +265,35 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     document.getElementById('form-canje').submit();
+                }
+            });
+        });
+
+        document.getElementById('btnEnviarCorreo')?.addEventListener('click', function() {
+            Swal.fire({
+                title: '¿Enviar QR al correo?',
+                html: 'Tu credencial QR activa será enviada a:<br><strong class="text-[#2F9B34] font-mono text-sm">{{ $user->email }}</strong><br><br><small class="text-gray-500">Se adjuntará imagen PNG y se incrustará en el cuerpo del mensaje. No se descuenta ración extra.</small>',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#283618',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Sí, enviar ahora',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true,
+                customClass: {
+                    popup: 'rounded-[2rem]'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Enviando credencial...',
+                        text: 'Procesando el envío de tu código QR...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    document.getElementById('form-enviar-correo').submit();
                 }
             });
         });

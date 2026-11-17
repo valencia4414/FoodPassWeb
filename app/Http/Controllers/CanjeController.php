@@ -151,4 +151,68 @@ class CanjeController extends Controller
             'beneficiario'=> $canje->user?->nombre,
         ]);
     }
+
+    /**
+     * Envía la credencial QR actual del aprendiz a su correo electrónico registrado.
+     * Requisitos:
+     * - Aprendiz debe ser beneficiario activo.
+     * - Debe tener un QR vigente generado hoy (estado 'pendiente').
+     * - No genera nuevo QR ni descuenta ración adicional.
+     * - Adjunta el PNG y lo incluye inline.
+     * - Registra evento en audit_logs.
+     */
+    public function enviarQrCorreo(Request $request)
+    {
+        $user = auth()->user();
+
+        // 1. Validar que sea beneficiario activo o administrador
+        if (!$user->isBeneficiario() && !$user->isAdmin()) {
+            return back()->with('error', 'Solo los beneficiarios activos del programa alimentario SENA pueden recibir credenciales QR.');
+        }
+
+        // 2. Buscar el QR activo de hoy
+        $canje = Canje::where('usuario_id', $user->id)
+            ->whereDate('fecha_canje', today())
+            ->where('estado', 'pendiente')
+            ->latest('id')
+            ->first();
+
+        if (!$canje || empty($canje->codigo_qr)) {
+            return back()->with('error', 'No tienes una credencial QR activa generada hoy. Por favor genera tu código QR primero antes de enviarlo por correo.');
+        }
+
+        try {
+            // 3. Generar imagen PNG del código QR
+            $qrPngBytes = \App\Services\SrsFoodPassService::generarQrPngBytes($canje->codigo_qr, 8, 4);
+
+            $franjaInfo = [
+                'nombre'      => 'Apoyo Alimentario SENA',
+                'codigo'      => 'ALMUERZO',
+                'hora_limite' => '11:59 PM (Medianoche)',
+            ];
+
+            // 4. Enviar correo electrónico con Mailable (inline + adjunto)
+            \Illuminate\Support\Facades\Mail::to($user->email)->send(
+                new \App\Mail\CredencialQrMailable($user, $canje, $franjaInfo, $qrPngBytes)
+            );
+
+            // 5. Registrar evento en bitácora inmutable de auditoría
+            \App\Services\SrsFoodPassService::registrarAuditoria(
+                'QR_ENVIADO_CORREO',
+                'Beneficios SENA',
+                "Credencial QR {$canje->codigo_qr} enviada satisfactoriamente al correo {$user->email}.",
+                [
+                    'canje_id'    => $canje->id,
+                    'codigo_qr'   => $canje->codigo_qr,
+                    'email'       => $user->email,
+                    'fecha_canje' => $canje->fecha_canje,
+                ]
+            );
+
+            return back()->with('success', "¡Código QR enviado exitosamente a tu correo ({$user->email})! Incluye imagen y archivo adjunto.");
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Error al enviar QR por correo a {$user->email}: " . $e->getMessage());
+            return back()->with('error', 'Ocurrió un error al enviar el correo con el código QR. Inténtalo de nuevo.');
+        }
+    }
 }

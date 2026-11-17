@@ -45,6 +45,11 @@ class Pedido extends Model
         return $this->belongsTo(User::class, 'usuario_id');
     }
 
+    public function usuario()
+    {
+        return $this->user();
+    }
+
     public function restaurante()
     {
         return $this->belongsTo(Restaurante::class, 'restaurante_id');

@@ -18,7 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withSchedule(function (Schedule $schedule): void {
-        $schedule->command('sena:sync')->daily();
+        $schedule->command('sena:sincronizar-padron')->daily();
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([

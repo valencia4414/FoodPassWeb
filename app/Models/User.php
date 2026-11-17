@@ -96,14 +96,32 @@ class User extends Authenticatable
         return $this->roles()->where('nombre', 'admin')->exists();
     }
 
+    public function isInstructor(): bool
+    {
+        return $this->roles()->where('nombre', 'instructor')->exists();
+    }
+
     public function isRestaurante(): bool
     {
         return $this->roles()->whereIn('nombre', ['restaurante', 'operador_restaurante', 'tecnico'])->exists();
     }
 
+    /**
+     * Valida si el usuario es beneficiario activo en el padrón oficial (beneficiarios_sena).
+     * Instructores y administradores no reciben apoyo alimentario de aprendices.
+     */
     public function isBeneficiario(): bool
     {
-        return BeneficiarioSena::where('email', $this->email)
+        if ($this->isAdmin() || $this->isInstructor() || $this->isRestaurante()) {
+            return false;
+        }
+
+        return BeneficiarioSena::where(function ($q) {
+                $q->where('email', $this->email);
+                if (!empty($this->documento)) {
+                    $q->orWhere('numero_documento', $this->documento);
+                }
+            })
             ->where('activo', true)
             ->exists();
     }
@@ -115,7 +133,24 @@ class User extends Authenticatable
 
     public function isCliente(): bool
     {
-        return $this->role === 'cliente';
+        return in_array($this->role, ['cliente', 'aprendiz']);
+    }
+
+    public function nombreRolVisible(): string
+    {
+        if ($this->isAdmin()) {
+            return 'Administrador SENA';
+        }
+        if ($this->isInstructor()) {
+            return 'Instructor SENA';
+        }
+        if ($this->isRestaurante()) {
+            return 'Personal Cafetería';
+        }
+        if ($this->isBeneficiario()) {
+            return 'Aprendiz Beneficiario (Activo)';
+        }
+        return 'Aprendiz SENA';
     }
 
     public function canjes()

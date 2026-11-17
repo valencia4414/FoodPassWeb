@@ -153,10 +153,64 @@
 <!-- Main Content Canvas -->
 <main class="lg:ml-64 pt-24 px-6 pb-12 min-h-screen">
 <!-- Welcome Section -->
-<section class="mb-10">
+<section class="mb-8">
 <h2 class="text-4xl font-headline font-extrabold text-on-background tracking-tight mb-2">¡Hola, {{ explode(' ', auth()->user()->name)[0] }}!</h2>
 <p class="text-on-surface-variant font-body">Bienvenido a tu panel artesanal de hoy.</p>
 </section>
+
+<!-- Banner Estado de Beneficiario (RF01 - SRS FoodPass) -->
+<div class="mb-10">
+    @if(auth()->user()->isBeneficiario())
+        <div class="bg-gradient-to-r from-[#283618] to-[#3a4f23] rounded-3xl p-6 sm:p-7 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden border border-[#2F9B34]/30">
+            <div class="flex items-center gap-5 relative z-10">
+                <div class="w-14 h-14 rounded-2xl bg-[#2F9B34]/20 border border-[#2F9B34]/40 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[#2F9B34] text-3xl" style="font-variation-settings: 'FILL' 1;">verified</span>
+                </div>
+                <div>
+                    <div class="inline-flex items-center gap-2 bg-[#2F9B34]/20 text-emerald-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2">
+                        <span class="w-2 h-2 rounded-full bg-[#2F9B34] animate-pulse"></span>
+                        Padrón Oficial Verificado
+                    </div>
+                    <h3 class="text-2xl font-headline font-bold text-white tracking-tight">Eres beneficiario activo</h3>
+                    <p class="text-emerald-100/80 text-sm mt-1 max-w-xl">
+                        Tu apoyo alimentario SENA se encuentra habilitado para la jornada de hoy. Puedes generar tu credencial QR y enviarla directamente a tu correo electrónico.
+                    </p>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-3 relative z-10 w-full md:w-auto shrink-0">
+                <a href="{{ route('canje') }}" class="w-full sm:w-auto text-center px-6 py-3.5 bg-[#F97F2D] hover:bg-[#e06d1f] text-white font-bold rounded-2xl shadow-lg shadow-[#F97F2D]/30 transition-all flex items-center justify-center gap-2 text-sm active:scale-95">
+                    <span class="material-symbols-outlined text-lg">qr_code</span>
+                    <span>Ver / Generar QR</span>
+                </a>
+            </div>
+            <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-[#2F9B34]/10 rounded-full blur-2xl"></div>
+        </div>
+    @else
+        <div class="bg-gradient-to-r from-amber-950/80 to-amber-900/60 rounded-3xl p-6 sm:p-7 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden border border-amber-500/30">
+            <div class="flex items-center gap-5 relative z-10">
+                <div class="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-amber-400 text-3xl">info</span>
+                </div>
+                <div>
+                    <div class="inline-flex items-center gap-2 bg-amber-500/20 text-amber-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2">
+                        Padrón Oficial SENA
+                    </div>
+                    <h3 class="text-2xl font-headline font-bold text-white tracking-tight">No eres beneficiario activo</h3>
+                    <p class="text-amber-100/80 text-sm mt-1 max-w-xl">
+                        Tu documento no figura en el padrón activo de apoyo alimentario para el ciclo actual. Puedes ordenar tus comidas desde el Menú Digital o consultar con Bienestar al Aprendiz.
+                    </p>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-3 relative z-10 w-full md:w-auto shrink-0">
+                <a href="{{ route('menu-digital') }}" class="w-full sm:w-auto text-center px-6 py-3.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm active:scale-95">
+                    <span class="material-symbols-outlined text-lg">restaurant_menu</span>
+                    <span>Ver Menú Digital</span>
+                </a>
+            </div>
+            <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-amber-500/10 rounded-full blur-2xl"></div>
+        </div>
+    @endif
+</div>
 <!-- Bento Grid Summary Cards -->
 <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-12">
 <!-- Principal Card: Almuerzos Disponibles -->

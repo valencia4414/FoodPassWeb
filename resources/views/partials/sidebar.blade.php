@@ -48,6 +48,35 @@
             style="font-variation-settings: 'FILL' 1;" @endif>person</span>
             <span class="text-sm">Perfil</span>
         </a>
+
+        @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isRestaurante()))
+            <div class="pt-4 pb-1 px-4">
+                <p class="text-[10px] font-bold tracking-widest uppercase text-white/40">Administración</p>
+            </div>
+
+            @if(auth()->user()->isAdmin())
+            <!-- Padrón Beneficiarios -->
+            <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('admin.beneficiarios*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
+                href="{{ route('admin.beneficiarios') }}">
+                <span class="material-symbols-outlined" @if(request()->routeIs('admin.beneficiarios*')) style="font-variation-settings: 'FILL' 1;" @endif>badge</span>
+                <span class="text-sm">Beneficiarios SENA</span>
+            </a>
+            @endif
+
+            <!-- Pedidos Cafetería -->
+            <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('admin.pedidos*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
+                href="{{ route('admin.pedidos') }}">
+                <span class="material-symbols-outlined" @if(request()->routeIs('admin.pedidos*')) style="font-variation-settings: 'FILL' 1;" @endif>receipt_long</span>
+                <span class="text-sm">Pedidos Cafetería</span>
+            </a>
+
+            <!-- Gestión Platillos -->
+            <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('admin.platillos*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
+                href="{{ route('admin.platillos.index') }}">
+                <span class="material-symbols-outlined" @if(request()->routeIs('admin.platillos*')) style="font-variation-settings: 'FILL' 1;" @endif>lunch_dining</span>
+                <span class="text-sm">Gestión Platillos</span>
+            </a>
+        @endif
     </nav>
 
     <!-- Usuario autenticado al pie -->
@@ -69,7 +98,7 @@
                 <div class="overflow-hidden">
                     <p class="text-white font-bold truncate text-sm">
                         {{ auth()->check() ? auth()->user()->name : 'Usuario SENA' }}</p>
-                    <p class="text-white/40 text-xs truncate">Aprendiz SENA</p>
+                    <p class="text-white/40 text-xs truncate">{{ auth()->check() ? auth()->user()->nombreRolVisible() : 'Aprendiz SENA' }}</p>
                 </div>
             </div>
             <span

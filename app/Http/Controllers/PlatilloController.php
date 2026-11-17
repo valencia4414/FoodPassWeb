@@ -30,7 +30,7 @@ class PlatilloController extends Controller
             $query->where('disponible', (bool) $request->disponible);
         }
 
-        $platillos     = $query->orderBy('created_at', 'desc')->paginate(20);
+        $platillos     = $query->orderBy('creado_en', 'desc')->paginate(20);
         $restaurantes  = Restaurante::orderBy('nombre')->get();
 
         return view('admin.platillos.index', compact('platillos', 'restaurantes'));
@@ -71,6 +71,15 @@ class PlatilloController extends Controller
         }
 
         $validated['disponible'] = $request->boolean('disponible', true);
+
+        $catMap = [
+            'plato_fuerte' => 1,
+            'entrada'      => 1,
+            'bebida'       => 2,
+            'postre'       => 3,
+        ];
+        $validated['categoria_id'] = $catMap[$request->categoria] ?? 1;
+        unset($validated['categoria']);
 
         $platillo = Platillo::create($validated);
 
@@ -128,6 +137,15 @@ class PlatilloController extends Controller
         }
 
         $validated['disponible'] = $request->boolean('disponible', $platillo->disponible);
+
+        $catMap = [
+            'plato_fuerte' => 1,
+            'entrada'      => 1,
+            'bebida'       => 2,
+            'postre'       => 3,
+        ];
+        $validated['categoria_id'] = $catMap[$request->categoria] ?? 1;
+        unset($validated['categoria']);
 
         $platillo->update($validated);
 

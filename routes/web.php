@@ -15,6 +15,7 @@ use App\Http\Controllers\RestauranteController;
 use App\Http\Controllers\PedidoController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\CuentaController;
+use App\Http\Controllers\Admin\AdminBeneficiariosController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 
@@ -113,6 +114,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/canje', [CanjeController::class, 'store'])
         ->name('canje.store');
 
+    // Envío del código QR activo por correo (RF04 y Solicitud Aprendiz)
+    Route::post('/canje/enviar-correo', [CanjeController::class, 'enviarQrCorreo'])
+        ->name('canje.enviar-correo');
+
     // Endpoint de validación de QR (para cajeros/operadores)
     Route::post('/canje/validar', [CanjeController::class, 'validar'])
         ->name('canje.validar');
@@ -175,6 +180,18 @@ Route::middleware('auth')->group(function () {
                 'platillos/{platillo}/disponibilidad',
                 [PlatilloController::class, 'toggleDisponibilidad']
             )->name('platillos.disponibilidad');
+
+            // --- Padrón Oficial de Beneficiarios SENA ---
+            Route::get('beneficiarios', [AdminBeneficiariosController::class, 'index'])->name('beneficiarios');
+            Route::post('beneficiarios', [AdminBeneficiariosController::class, 'store'])->name('beneficiarios.store');
+            Route::post('beneficiarios/subir-archivo', [AdminBeneficiariosController::class, 'subirArchivo'])->name('beneficiarios.subir');
+            Route::get('beneficiarios/descargar-archivo/{id}', [AdminBeneficiariosController::class, 'descargarArchivoCarga'])->name('beneficiarios.cargas.descargar');
+            Route::match(['post', 'patch'], 'beneficiarios/{id}/toggle-activo', [AdminBeneficiariosController::class, 'toggleActivo'])->name('beneficiarios.toggle');
+            Route::delete('beneficiarios/{id}', [AdminBeneficiariosController::class, 'destroy'])->name('beneficiarios.destroy');
+
+            // --- Gestión de Pedidos de Cafetería ---
+            Route::get('pedidos', [AdminBeneficiariosController::class, 'pedidos'])->name('pedidos');
+            Route::patch('pedidos/{id}/estado', [AdminBeneficiariosController::class, 'actualizarEstadoPedido'])->name('pedidos.estado');
         });
 
     // RF07, RF08, RF09: Pedidos (sin módulo de pagos)
