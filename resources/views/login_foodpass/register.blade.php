@@ -261,6 +261,10 @@ document.addEventListener('DOMContentLoaded', () => {
             validate: (val) => {
                 if (!val) return 'El campo está vacío.';
                 if (val.length < 8) return 'La contraseña debe tener al menos 8 caracteres.';
+                if (!/[a-z]/.test(val)) return 'Debe incluir una letra minúscula.';
+                if (!/[A-Z]/.test(val)) return 'Debe incluir una letra mayúscula.';
+                if (!/[0-9]/.test(val)) return 'Debe incluir al menos un número.';
+                if (!/[^A-Za-z0-9]/.test(val)) return 'Debe incluir al menos un símbolo.';
                 return '';
             }
         },

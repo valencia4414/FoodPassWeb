@@ -32,21 +32,13 @@ class LoginController extends Controller
         $credentials = $request->only('email', 'password');
         $remember = $request->boolean('remember');
 
-        // Validar credenciales capturando posibles errores de formato de hash
-        $isValid = false;
-        try {
-            $isValid = Auth::validate($credentials);
-        } catch (\Throwable $e) {
-            $isValid = false;
-        }
-
-        if (!$isValid) {
+        if (!Auth::attempt($credentials, $remember)) {
             return back()
                 ->withInput($request->only('email'))
                 ->withErrors(['email' => 'Credenciales incorrectas.']);
         }
 
-        $user = \App\Models\User::where('email', $credentials['email'])->first();
+        $user = Auth::user();
 
         // RF21 — MFA para administradores solo si está explícitamente habilitado en .env
         if ($user && $user->isAdmin() && env('ENABLE_ADMIN_OTP', false)) {
@@ -59,12 +51,16 @@ class LoginController extends Controller
                 return redirect()->route('otp.verify')
                     ->with('status', 'Enviamos un código de verificación a tu correo.');
             } catch (\Throwable $e) {
-                // Si falla el envío de correo OTP en local, iniciar sesión directamente
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                report($e);
+
+                return redirect()->route('login')
+                    ->withErrors(['email' => 'No fue posible enviar el código de verificación. Inténtalo más tarde.']);
             }
         }
 
-        // Iniciar sesión
-        Auth::login($user, $remember);
         $request->session()->regenerate();
 
         return redirect()->intended(route('dashboard'));

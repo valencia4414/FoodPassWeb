@@ -1,6 +1,9 @@
 <!-- SideNavBar Shell Reutilizable Oficial FoodPass -->
 <style>
     [x-cloak] { display: none !important; }
+    @media (max-width: 1023px) {
+        .ml-64 { margin-left: 0 !important; }
+    }
 
     /* Estilos globales de Modo Oscuro para toda la app */
     html.dark body,
@@ -117,8 +120,14 @@
     })();
 </script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<div id="overlay" class="hidden fixed inset-0 z-[35] bg-black/50 lg:hidden"></div>
+<button id="sidebar-toggle" type="button" aria-label="Abrir menú"
+    class="fixed left-4 top-4 z-[60] flex h-11 w-11 items-center justify-center rounded-xl bg-[#273517] text-white shadow-lg lg:hidden">
+    <span class="material-symbols-outlined">menu</span>
+</button>
 <aside
-    class="flex flex-col z-40 h-screen w-64 fixed left-0 top-0 overflow-y-auto bg-[#273517] shadow-2xl font-['Plus_Jakarta_Sans',sans-serif] tracking-wide shrink-0">
+    id="sidebar"
+    class="flex flex-col z-40 h-screen w-64 fixed left-0 top-0 overflow-y-auto bg-[#273517] shadow-2xl font-['Plus_Jakarta_Sans',sans-serif] tracking-wide shrink-0 transition-transform duration-200 -translate-x-full lg:translate-x-0">
     <div class="p-8">
         <h1 class="text-2xl font-bold text-white mb-1">FoodPass</h1>
         <p class="text-white/50 text-xs uppercase tracking-widest font-bold">The Artisanal Ledger</p>
@@ -130,7 +139,7 @@
             href="{{ route('dashboard') }}">
             <span class="material-symbols-outlined" @if(request()->routeIs('dashboard*'))
             style="font-variation-settings: 'FILL' 1;" @endif>home</span>
-            <span class="text-sm">Inicio</span>
+            <span class="text-sm">{{ __('ui.home') }}</span>
         </a>
 
         <!-- 2. Menú -->
@@ -138,7 +147,7 @@
             href="{{ route('menu-digital') }}">
             <span class="material-symbols-outlined" @if(request()->routeIs('menu-digital*'))
             style="font-variation-settings: 'FILL' 1;" @endif>restaurant_menu</span>
-            <span class="text-sm">Menú</span>
+            <span class="text-sm">{{ __('ui.menu') }}</span>
         </a>
 
         <!-- 3. Historial -->
@@ -146,7 +155,7 @@
             href="{{ route('historial') }}">
             <span class="material-symbols-outlined" @if(request()->routeIs('historial*'))
             style="font-variation-settings: 'FILL' 1;" @endif>history</span>
-            <span class="text-sm">Historial</span>
+            <span class="text-sm">{{ __('ui.history') }}</span>
         </a>
 
         <!-- 4. Canje QR -->
@@ -154,7 +163,7 @@
             href="{{ route('canje') }}">
             <span class="material-symbols-outlined" @if(request()->routeIs('canje*'))
             style="font-variation-settings: 'FILL' 1;" @endif>qr_code_scanner</span>
-            <span class="text-sm">Canje QR</span>
+            <span class="text-sm">{{ __('ui.qr_exchange') }}</span>
         </a>
 
         <!-- 5. Perfil -->
@@ -162,12 +171,12 @@
             href="{{ route('perfil') }}">
             <span class="material-symbols-outlined" @if(request()->routeIs('perfil*'))
             style="font-variation-settings: 'FILL' 1;" @endif>person</span>
-            <span class="text-sm">Perfil</span>
+            <span class="text-sm">{{ __('ui.profile') }}</span>
         </a>
 
         @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isRestaurante()))
             <div class="pt-4 pb-1 px-4">
-                <p class="text-[10px] font-bold tracking-widest uppercase text-white/40">Administración</p>
+                <p class="text-[10px] font-bold tracking-widest uppercase text-white/40">{{ __('ui.administration') }}</p>
             </div>
 
             @if(auth()->user()->isAdmin())
@@ -175,7 +184,7 @@
             <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('admin.beneficiarios*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
                 href="{{ route('admin.beneficiarios') }}">
                 <span class="material-symbols-outlined" @if(request()->routeIs('admin.beneficiarios*')) style="font-variation-settings: 'FILL' 1;" @endif>badge</span>
-                <span class="text-sm">Beneficiarios SENA</span>
+                <span class="text-sm">{{ __('ui.beneficiaries') }}</span>
             </a>
             @endif
 
@@ -183,14 +192,14 @@
             <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('admin.pedidos*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
                 href="{{ route('admin.pedidos') }}">
                 <span class="material-symbols-outlined" @if(request()->routeIs('admin.pedidos*')) style="font-variation-settings: 'FILL' 1;" @endif>receipt_long</span>
-                <span class="text-sm">Pedidos Cafetería</span>
+                <span class="text-sm">{{ __('ui.cafeteria_orders') }}</span>
             </a>
 
             <!-- Gestión Platillos -->
             <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('admin.platillos*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
                 href="{{ route('admin.platillos.index') }}">
                 <span class="material-symbols-outlined" @if(request()->routeIs('admin.platillos*')) style="font-variation-settings: 'FILL' 1;" @endif>lunch_dining</span>
-                <span class="text-sm">Gestión Platillos</span>
+                <span class="text-sm">{{ __('ui.dishes') }}</span>
             </a>
         @endif
     </nav>
@@ -260,7 +269,7 @@
             <button type="button" @click="modalLogoutConfirm = true; openUserMenu = false;"
                 class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-400 hover:bg-red-500/20 hover:text-red-300 rounded-xl transition-colors text-left">
                 <span class="material-symbols-outlined text-[20px]">logout</span>
-                <span>Cerrar Sesión</span>
+                <span>{{ __('ui.logout') }}</span>
             </button>
         </div>
 
@@ -273,7 +282,7 @@
                     class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
                     <span class="material-symbols-outlined text-[30px]">logout</span>
                 </div>
-                <h3 class="text-xl font-bold text-gray-900 mb-2">¿Cerrar Sesión?</h3>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">¿{{ __('ui.logout') }}?</h3>
                 <p class="text-xs text-gray-500 mb-6">¿Estás seguro de que deseas salir de tu cuenta de FoodPass?</p>
 
                 <form method="POST" action="{{ route('logout') }}" class="flex gap-3">
@@ -291,3 +300,20 @@
         </div>
     </div>
 </aside>
+<script>
+    document.addEventListener('click', function (event) {
+        const toggle = event.target.closest('#sidebar-toggle, #btn-menu');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+
+        if (!sidebar || !overlay) return;
+
+        if (toggle) {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        } else if (event.target === overlay) {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        }
+    });
+</script>

@@ -116,23 +116,7 @@
 
                 <div class="flex flex-col gap-4 h-64">
                     <div
-                        class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex-1 flex flex-col justify-center">
-                        <div class="flex items-center gap-3 mb-1">
-                            <div
-                                class="w-10 h-10 rounded-full bg-fp-orange/10 flex items-center justify-center text-fp-orange">
-                                <span class="material-symbols-outlined">stars</span>
-                            </div>
-                            <h3 class="font-bold text-base text-fp-darkgreen">Puntos FoodPass</h3>
-                        </div>
-                        <p class="text-gray-500 text-xs mb-2">Tienes <span class="font-bold text-fp-green">1,250</span>
-                            puntos acumulados.</p>
-                        <a href="{{ route('canje') }}"
-                            class="text-fp-orange text-xs font-semibold hover:underline inline-flex items-center gap-1">Ver
-                            catálogo de canje <span
-                                class="material-symbols-outlined text-[14px]">arrow_forward</span></a>
-                    </div>
-                    <div
-                        class="bg-fp-card-light rounded-3xl p-6 shadow-sm flex-1 flex flex-col justify-center border border-[#d2ebaf]">
+                        class="bg-fp-card-light rounded-3xl p-6 shadow-sm flex-1 min-h-40 flex flex-col justify-center border border-[#d2ebaf]">
                         <div class="flex items-center justify-between mb-1">
                             <h3 class="font-bold text-base text-fp-darkgreen">Beneficio SENA</h3>
                             <span class="material-symbols-outlined text-fp-green">verified</span>
@@ -418,7 +402,6 @@
                 abrirCarrito: false,
                 abrirConfirmacion: false,
                 platilloSeleccionado: null,
-                metodoPago: 'Canje QR',
                 carrito: [],
 
                 cumpleFiltro(cat, nombre, desc) {
@@ -481,14 +464,13 @@
                             'Accept': 'application/json'
                         },
                         body: JSON.stringify({
-                            metodo_pago: this.metodoPago,
                             items: items
                         })
                     })
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                alert('¡Pedido #' + data.pedido_id + ' confirmado con éxito mediante ' + this.metodoPago + '! Tu orden pasará a la cocina de la Cafetería SENA.');
+                                alert('¡Pedido #' + data.pedido_id + ' confirmado con éxito! Tu orden pasará a la cocina de la Cafetería SENA.');
                                 this.carrito = [];
                                 this.abrirConfirmacion = false;
                             } else {

@@ -49,7 +49,7 @@
                                         
                                         <div style="margin-top: 14px;">
                                             <span style="display: inline-block; background-color: #EBF7EE; color: #2F9B34; font-size: 12px; font-weight: 700; padding: 4px 14px; border-radius: 12px;">
-                                                ● QR Válido y Firmado Digitalmente
+                                                ● QR personal y de un solo uso
                                             </span>
                                         </div>
                                     </td>

@@ -16,4 +16,11 @@ class ExampleTest extends TestCase
 
         $response->assertRedirect('/login');
     }
+
+    public function test_protected_pages_redirect_guests_to_login(): void
+    {
+        $response = $this->get('/dashboard');
+
+        $response->assertRedirect('/login');
+    }
 }

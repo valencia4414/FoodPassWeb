@@ -49,7 +49,7 @@ class SrsFoodPassService
                 'created_at'      => now(),
             ]);
         } catch (\Throwable $e) {
-            // No interrumpir flujo operativo si falla el log secundario
+            report($e);
         }
     }
 
@@ -109,7 +109,7 @@ class SrsFoodPassService
      */
     public static function firmarCredencialSocial(int $userId, string $documento, string $franja, string $fecha): array
     {
-        $secret = config('app.key', 'FOODPASS-SRS-ADSO31-SECRET');
+        $secret = self::credentialSigningKey();
         $payload = "FP-SUB|{$userId}|{$documento}|{$franja}|{$fecha}";
         $firma = substr(hash_hmac('sha256', $payload, $secret), 0, 16);
         return [
@@ -150,7 +150,7 @@ class SrsFoodPassService
      */
     public static function firmarCredencialComercial(int $pedidoId, int $userId, float $total): array
     {
-        $secret = config('app.key', 'FOODPASS-SRS-ADSO31-SECRET');
+        $secret = self::credentialSigningKey();
         $montoEntero = (int) round($total);
         $payload = "FP-COM|{$pedidoId}|{$userId}|{$montoEntero}";
         $firma = substr(hash_hmac('sha256', $payload, $secret), 0, 16);
@@ -158,6 +158,17 @@ class SrsFoodPassService
             'token' => "{$payload}|{$firma}",
             'firma' => $firma,
         ];
+    }
+
+    private static function credentialSigningKey(): string
+    {
+        $key = config('app.key');
+
+        if (!is_string($key) || $key === '') {
+            throw new \RuntimeException('APP_KEY must be configured to sign QR credentials.');
+        }
+
+        return $key;
     }
 
     /**

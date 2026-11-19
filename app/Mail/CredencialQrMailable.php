@@ -55,7 +55,7 @@ class CredencialQrMailable extends Mailable
                 'franjaInfo'  => $this->franjaInfo,
                 'qrBase64'    => $this->qrBase64,
                 'fecha'       => $this->canje->fecha_canje ?? now()->format('Y-m-d'),
-                'expiraAt'    => $this->canje->expira_at ?? $this->franjaInfo['hora_limite'],
+                'expiraAt'    => $this->canje->expira_en?->format('h:i A') ?? $this->franjaInfo['hora_limite'],
             ],
         );
     }

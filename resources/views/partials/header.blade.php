@@ -1,6 +1,6 @@
 <header class="h-16 bg-white border-b flex items-center justify-between px-6">
     <!-- Botón Hamburguesa para móvil (RNF03) -->
-    <button id="btn-menu" class="lg:hidden p-2 text-gray-600">
+    <button id="btn-menu" class="hidden">
         <span class="material-symbols-outlined">menu</span>
     </button>
 
@@ -8,36 +8,47 @@
 
 
     <div class="flex items-center gap-5">
+        @php
+            $unreadNotificationCount = auth()->user()->unreadNotifications()->count();
+            $notifications = auth()->user()->notifications()->latest()->limit(10)->get();
+        @endphp
         <!-- Dropdown de Notificaciones -->
         <div class="relative x-dropdown">
-            <button class="relative p-2 text-gray-500 hover:text-[#F97F2D] transition-colors rounded-full hover:bg-orange-50 focus:outline-none" onclick="document.getElementById('notif-menu').classList.toggle('hidden')">
+            <button type="button" aria-controls="notif-menu" aria-label="{{ __('ui.notifications') }}" aria-expanded="false" class="relative p-2 text-gray-500 hover:text-[#F97F2D] transition-colors rounded-full hover:bg-orange-50 focus:outline-none" onclick="const menu=document.getElementById('notif-menu'); menu.classList.toggle('hidden'); this.setAttribute('aria-expanded', String(!menu.classList.contains('hidden')));">
                 <span class="material-symbols-outlined text-[24px]">notifications</span>
-                @if(auth()->user()->unreadNotifications->count() > 0)
-                <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                @if($unreadNotificationCount > 0)
+                <span class="absolute top-1 right-1 min-w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" aria-label="{{ $unreadNotificationCount }} {{ __('ui.new_notifications') }}"></span>
                 @endif
             </button>
-            <div id="notif-menu" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+            <div id="notif-menu" class="hidden absolute right-0 mt-2 w-[min(20rem,calc(100vw-2rem))] bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
                 <div class="p-3 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
-                    <span class="text-xs font-bold text-gray-700 uppercase tracking-wider">Notificaciones</span>
-                    @if(auth()->user()->unreadNotifications->count() > 0)
-                    <span class="text-[10px] bg-[#F97F2D] text-white px-2 py-0.5 rounded-full">{{ auth()->user()->unreadNotifications->count() }} nuevas</span>
+                    <span class="text-xs font-bold text-gray-700 uppercase tracking-wider">{{ __('ui.notifications') }}</span>
+                    @if($unreadNotificationCount > 0)
+                    <form method="POST" action="{{ route('notifications.read-all') }}">
+                        @csrf
+                        <button type="submit" class="text-[10px] font-semibold text-[#F97F2D] hover:underline">{{ __('ui.mark_all_read') }} ({{ $unreadNotificationCount }})</button>
+                    </form>
                     @endif
                 </div>
                 <div class="max-h-80 overflow-y-auto">
-                    @forelse(auth()->user()->notifications as $notification)
+                    @forelse($notifications as $notification)
                         <div class="p-4 border-b border-gray-50 hover:bg-gray-50 flex gap-3 transition-colors {{ empty($notification->read_at) ? 'bg-orange-50/30' : '' }}">
-                            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0 text-blue-600">
-                                <span class="material-symbols-outlined text-[16px]">info</span>
-                            </div>
-                            <div>
+                            <span class="material-symbols-outlined text-blue-600 text-[18px] mt-0.5" aria-hidden="true">info</span>
+                            <div class="min-w-0 flex-1">
                                 <p class="text-sm text-gray-800">{{ $notification->data['message'] ?? 'Tienes una nueva actualización.' }}</p>
                                 <span class="text-[10px] text-gray-400 mt-1 block">{{ $notification->created_at->diffForHumans() }}</span>
+                                @if(empty($notification->read_at))
+                                    <form method="POST" action="{{ route('notifications.read', $notification->id) }}" class="mt-2">
+                                        @csrf
+                                        <button type="submit" class="text-[11px] font-semibold text-[#F97F2D] hover:underline">{{ __('ui.mark_read') }}</button>
+                                    </form>
+                                @endif
                             </div>
                         </div>
                     @empty
                         <div class="p-6 text-center text-gray-400">
                             <span class="material-symbols-outlined text-[32px] mb-2 opacity-50">notifications_off</span>
-                            <p class="text-sm font-medium">No tienes notificaciones</p>
+                            <p class="text-sm font-medium">{{ __('ui.no_notifications') }}</p>
                         </div>
                     @endforelse
                 </div>
@@ -71,16 +82,6 @@
 </header>
 
 <script>
-    // Lógica para abrir/cerrar menú móvil (RNF03)
-    const btnMenu = document.getElementById('btn-menu');
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('overlay');
-
-    if(btnMenu && sidebar && overlay) {
-        btnMenu.onclick = () => { sidebar.classList.toggle('-translate-x-full'); overlay.classList.toggle('hidden'); };
-        overlay.onclick = () => { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); };
-    }
-
     // Cerrar dropdowns al hacer clic fuera
     document.addEventListener('click', function(e) {
         if (!e.target.closest('.x-dropdown')) {
@@ -90,6 +91,7 @@
                     menu.classList.add('hidden');
                 }
             });
+            document.querySelectorAll('[aria-controls="notif-menu"]').forEach(button => button.setAttribute('aria-expanded', 'false'));
         }
     });
 </script>

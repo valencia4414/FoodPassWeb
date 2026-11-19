@@ -1,8 +1,4 @@
 import './bootstrap';
-import Alpine from 'Alpinejs'; 
-
-window.Alpine = Alpine;
-Alpine.start();
 
 async function realizarPeticion(url, opciones = {}) {
     try { // Tarea 55: Manejo asíncrono con try/catch

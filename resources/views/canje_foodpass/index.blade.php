@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -32,19 +32,18 @@
     </script>
     <style>[x-cloak] { display: none !important; }</style>
 </head>
-<body class="bg-fp-light font-sans text-slate-800 antialiased flex h-screen overflow-hidden">
+<body class="bg-fp-light font-sans text-slate-800 antialiased flex h-screen min-h-screen overflow-hidden">
 
     @include('partials.sidebar')
 
     <!-- Main Content -->
-    <div class="ml-64 flex-1 flex flex-col overflow-hidden">
-        <main class="flex-1 overflow-y-auto p-6 lg:p-10 relative">
+    <div class="ml-64 flex-1 min-w-0 flex flex-col overflow-hidden">
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10 relative">
             <div class="max-w-6xl mx-auto" x-data="qrApp()">
                 <div class="mb-8">
-                    <h1 class="text-3xl lg:text-4xl font-extrabold text-fp-dark tracking-tight mb-2">Canje y Validación QR</h1>
+                    <h1 class="text-3xl lg:text-4xl font-extrabold text-fp-dark tracking-tight mb-2">{{ __('ui.qr_page_title') }}</h1>
                     <p class="text-gray-600 max-w-2xl text-base leading-relaxed">
-                        Genera tu código QR para redimir tu beneficio alimentario SENA. 
-                        Puedes generar los códigos que necesites en el mismo día; todos tienen <strong>vigencia estricta hasta las 12:00 AM (medianoche)</strong>.
+                        {{ __('ui.qr_page_intro') }}
                     </p>
                 </div>
 
@@ -58,28 +57,31 @@
                             <div class="mb-5 relative z-10">
                                 @if(!$esBeneficiario)
                                     <span class="inline-flex items-center px-4 py-2 rounded-full bg-red-100 text-red-700 text-sm font-bold border border-red-200">
-                                        <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span> No asignado como beneficiario SENA
+                                        <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span> {{ __('ui.not_assigned_beneficiary') }}
                                     </span>
                                 @else
                                     <span class="inline-flex items-center px-4 py-2 rounded-full bg-green-100 text-green-700 text-sm font-bold border border-green-200">
-                                        <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-ping"></span> Beneficio Activo — Generación Ilimitada
+                                        <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-ping"></span> {{ __('ui.active_qr_status') }}
                                     </span>
                                 @endif
                             </div>
 
                             <!-- Código QR Renderizado -->
                             @php
-                                $qrData = $ultimoQr ?? ('FP-USER-' . $user->id . '-' . now()->format('Ymd'));
+                                $qrData = $ultimoQr;
                             @endphp
-                            <div class="bg-fp-qr p-7 rounded-3xl mb-5 relative z-10 border border-green-200/60 shadow-inner flex flex-col items-center">
-                                <div class="bg-white p-4 rounded-2xl shadow-md border border-gray-100">
-                                    {!! QrCode::size(210)->generate($qrData) !!}
-                                </div>
-                                <div class="mt-3 text-center">
-                                    <span class="text-[11px] font-mono font-bold text-fp-dark bg-white/70 px-3 py-1 rounded-full border border-green-200">
-                                        {{ $qrData }}
-                                    </span>
-                                </div>
+                            <div class="bg-fp-qr p-4 sm:p-7 rounded-3xl mb-5 relative z-10 border border-green-200/60 shadow-inner flex flex-col items-center">
+                                @if($qrData)
+                                    <div class="bg-white p-3 sm:p-4 rounded-2xl shadow-md border border-gray-100" aria-label="{{ __('ui.active_qr_code') }}">
+                                        {!! QrCode::size(210)->margin(2)->generate($qrData) !!}
+                                    </div>
+                                    <p class="mt-3 text-center text-xs text-fp-dark font-semibold">{{ __('ui.single_use_qr') }}</p>
+                                @else
+                                    <div class="w-[210px] h-[210px] bg-white rounded-2xl shadow-md border border-gray-100 flex flex-col items-center justify-center text-gray-400 text-center p-5">
+                                        <span class="material-symbols-outlined text-5xl mb-2">qr_code_2</span>
+                                        <span class="text-sm font-semibold">{{ __('ui.generate_qr_prompt') }}</span>
+                                    </div>
+                                @endif
                             </div>
 
                             <!-- Información de Usuario -->
@@ -94,15 +96,15 @@
                                 <div class="flex items-center justify-between mb-1">
                                     <div class="flex items-center gap-2">
                                         <span class="material-symbols-outlined text-[#F97F2D] text-[20px]">schedule</span>
-                                        <span class="text-xs font-bold uppercase tracking-wider text-white/80">Vigencia Estricta</span>
+                                        <span class="text-xs font-bold uppercase tracking-wider text-white/80">{{ __('ui.validity') }}</span>
                                     </div>
-                                    <span class="text-xs font-semibold text-white/70">Expira 12:00 AM</span>
+                                    <span class="text-xs font-semibold text-white/70">{{ __('ui.expires_midnight') }}</span>
                                 </div>
                                 <div class="flex items-center justify-center gap-2 py-1">
                                     <span class="text-2xl font-black font-mono tracking-widest text-[#F97F2D]" x-text="countdown"></span>
-                                    <span class="text-xs text-white/60">restantes hoy</span>
+                                    <span class="text-xs text-white/60">{{ __('ui.remaining_today') }}</span>
                                 </div>
-                                <p class="text-[11px] text-white/60 mt-1">A medianoche el código deja de ser válido automáticamente.</p>
+                                <p class="text-[11px] text-white/60 mt-1">{{ __('ui.midnight_expiration') }}</p>
                             </div>
 
                             <!-- Botón Generar Nuevo QR (Sin límite) -->
@@ -113,16 +115,16 @@
                                     {{ !$esBeneficiario ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-fp-orange hover:bg-fp-orangeHover text-white hover:-translate-y-0.5 active:translate-y-0 shadow-orange-500/20 cursor-pointer' }}"
                                     {{ !$esBeneficiario ? 'disabled' : '' }}>
                                     <span class="material-symbols-outlined text-[22px]">qr_code_scanner</span>
-                                    <span>Generar Nuevo Código QR</span>
+                                    <span>{{ __('ui.generate_new_qr') }}</span>
                                 </button>
                                 <p class="text-center text-xs text-gray-500 mt-2 font-medium">
-                                    Puedes generar tantos códigos QR como requieras en el mismo día.
+                                    {{ __('ui.unlimited_qr_note') }}
                                 </p>
                             </form>
 
                             <!-- Botón Enviar QR al Correo (Requisito 3) -->
                             @php
-                                $tieneQrGenerado = $canjesHoy->where('estado', 'pendiente')->isNotEmpty() || !empty($ultimoQr);
+                                $tieneQrGenerado = !empty($ultimoQr);
                             @endphp
                             @if($esBeneficiario && $tieneQrGenerado)
                                 <form id="form-enviar-correo" action="{{ route('canje.enviar-correo') }}" method="POST" class="w-full max-w-md mt-4">
@@ -130,16 +132,16 @@
                                     <button type="button" id="btnEnviarCorreo"
                                         class="w-full font-bold text-base py-3.5 px-8 rounded-2xl shadow-md transition-all flex items-center justify-center gap-2.5 bg-[#283618] hover:bg-[#1e2a11] text-white hover:-translate-y-0.5 active:translate-y-0 cursor-pointer border border-[#2F9B34]/30">
                                         <span class="material-symbols-outlined text-[22px] text-[#2F9B34]">mail</span>
-                                        <span>Enviar QR al correo</span>
+                                        <span>{{ __('ui.send_qr_email') }}</span>
                                     </button>
                                     <p class="text-center text-[11px] text-gray-500 mt-2 font-medium">
-                                        Destino: <strong class="text-gray-700">{{ $user->email }}</strong> (adjunto PNG e incrustado en el cuerpo).
+                                        {{ __('ui.email_destination') }} <strong class="text-gray-700">{{ $user->email }}</strong> {{ __('ui.email_qr_attachment') }}
                                     </p>
                                 </form>
                             @elseif($esBeneficiario)
                                 <div class="w-full max-w-md mt-4 p-3 bg-amber-50 border border-amber-200 rounded-2xl text-amber-800 text-xs text-center flex items-center justify-center gap-2">
                                     <span class="material-symbols-outlined text-amber-600 text-base">info</span>
-                                    <span>Genera tu primer código QR para habilitar el envío a tu correo.</span>
+                                    <span>{{ __('ui.generate_qr_before_email') }}</span>
                                 </div>
                             @endif
 
@@ -169,13 +171,13 @@
                                 <span class="material-symbols-outlined text-[#F97F2D] text-[24px]">verified</span>
                             </div>
                             <h2 class="text-2xl font-extrabold tracking-tight mb-2">
-                                {{ $esBeneficiario ? 'SENA BENEFICIARIO ACTIVO' : 'SIN BENEFICIO ACTIVO' }}
+                                {{ $esBeneficiario ? 'BENEFICIARIO ACTIVO' : 'INACTIVO' }}
                             </h2>
                             <p class="text-xs text-white/70 leading-relaxed mb-4">
-                                Acceso garantizado al almuerzo diario mediante validación en restaurante aliado.
+                                {{ $esBeneficiario ? __('ui.active_benefit_description') : __('ui.benefit_not_active') }}
                             </p>
                             <div class="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-white/60">
-                                <span>Fecha actual:</span>
+                                <span>{{ __('ui.current_date') }}</span>
                                 <span class="font-bold text-white">{{ now()->format('d/m/Y') }}</span>
                             </div>
                         </div>
@@ -185,9 +187,9 @@
                             <div class="flex items-center justify-between mb-4">
                                 <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
                                     <span class="material-symbols-outlined text-fp-orange text-[20px]">history</span>
-                                    QR Generados Hoy ({{ $canjesHoy->count() }})
+                                    {{ __('ui.qr_generated_today', ['count' => $canjesHoy->count()]) }}
                                 </h3>
-                                <span class="text-[11px] font-bold text-gray-400 uppercase">Sin límite diario</span>
+                                <span class="text-[11px] font-bold text-gray-400 uppercase">{{ __('ui.no_daily_limit') }}</span>
                             </div>
 
                             <div class="space-y-3 max-h-56 overflow-y-auto pr-1">
@@ -195,7 +197,7 @@
                                     <div class="p-3 bg-gray-50 hover:bg-gray-100/80 rounded-xl transition-colors border border-gray-100 flex items-center justify-between">
                                         <div class="overflow-hidden mr-2">
                                             <p class="font-mono font-bold text-gray-800 text-xs truncate">
-                                                {{ $canje->codigo_qr ?? ('QR-' . $canje->id) }}
+                                                QR #{{ str_pad($canje->id, 4, '0', STR_PAD_LEFT) }}
                                             </p>
                                             <p class="text-gray-400 text-[10px] flex items-center gap-1 mt-0.5">
                                                 <span class="material-symbols-outlined text-[12px]">schedule</span>
@@ -206,13 +208,13 @@
                                             @if($canje->estado == 'exitoso' || $canje->estado == 'entregado') bg-green-100 text-green-700
                                             @elseif($canje->estado == 'expirado') bg-red-100 text-red-700
                                             @else bg-yellow-100 text-yellow-700 @endif">
-                                            {{ $canje->estado }}
+                                            {{ __('ui.status_' . $canje->estado) }}
                                         </span>
                                     </div>
                                 @empty
                                     <div class="text-center py-6 text-gray-400">
                                         <span class="material-symbols-outlined text-3xl mb-1 text-gray-300">qr_code_2</span>
-                                        <p class="text-xs">Aún no has generado ningún código QR hoy.</p>
+                                        <p class="text-xs">{{ __('ui.no_qr_today') }}</p>
                                     </div>
                                 @endforelse
                             </div>
@@ -222,20 +224,20 @@
                         <div class="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100">
                             <h3 class="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
                                 <span class="material-symbols-outlined text-blue-600 text-[20px]">info</span>
-                                Reglas de Canje y Vigencia
+                                {{ __('ui.qr_rules_title') }}
                             </h3>
                             <div class="space-y-3 text-xs text-gray-600">
                                 <div class="flex items-start gap-2.5">
                                     <span class="w-5 h-5 rounded-full bg-fp-light text-fp-dark flex items-center justify-center font-bold text-[11px] shrink-0 mt-0.5">1</span>
-                                    <p>Genera tu código QR en cualquier momento del día cuantas veces lo requieras.</p>
+                                    <p>{{ __('ui.qr_rule_generate') }}</p>
                                 </div>
                                 <div class="flex items-start gap-2.5">
                                     <span class="w-5 h-5 rounded-full bg-fp-light text-fp-dark flex items-center justify-center font-bold text-[11px] shrink-0 mt-0.5">2</span>
-                                    <p>Presenta el código en la cafetería SENA para su validación.</p>
+                                    <p>{{ __('ui.qr_rule_present') }}</p>
                                 </div>
                                 <div class="flex items-start gap-2.5">
                                     <span class="w-5 h-5 rounded-full bg-fp-light text-fp-dark flex items-center justify-center font-bold text-[11px] shrink-0 mt-0.5">3</span>
-                                    <p><strong>Expiración estricta a las 12:00 AM (medianoche)</strong> de cada día. Al iniciar el nuevo día, deberás generar un nuevo código.</p>
+                                    <p>{{ __('ui.qr_rule_expire') }}</p>
                                 </div>
                             </div>
                         </div>
@@ -251,14 +253,14 @@
         document.getElementById('btnCanjear')?.addEventListener('click', function() {
             if (this.disabled) return;
             Swal.fire({
-                title: '¿Generar nuevo código QR?',
-                text: "Se generará un código QR válido hasta las 12:00 AM (medianoche) de hoy. Puedes generar cuantos requieras.",
+                title: @json(__('ui.generate_qr_question')),
+                text: @json(__('ui.generate_qr_confirmation')),
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#f97316',
                 cancelButtonColor: '#64748b',
-                confirmButtonText: 'Sí, generar QR',
-                cancelButtonText: 'Cancelar',
+                confirmButtonText: @json(__('ui.confirm_generate_qr')),
+                cancelButtonText: @json(__('ui.cancel')),
                 reverseButtons: true,
                 customClass: {
                     popup: 'rounded-[2rem]'
@@ -272,14 +274,14 @@
 
         document.getElementById('btnEnviarCorreo')?.addEventListener('click', function() {
             Swal.fire({
-                title: '¿Enviar QR al correo?',
-                html: 'Tu credencial QR activa será enviada a:<br><strong class="text-[#2F9B34] font-mono text-sm">{{ $user->email }}</strong><br><br><small class="text-gray-500">Se adjuntará imagen PNG y se incrustará en el cuerpo del mensaje. No se descuenta ración extra.</small>',
+                title: @json(__('ui.send_qr_question')),
+                html: @json(__('ui.send_qr_confirmation', ['email' => $user->email])),
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#283618',
                 cancelButtonColor: '#64748b',
-                confirmButtonText: 'Sí, enviar ahora',
-                cancelButtonText: 'Cancelar',
+                confirmButtonText: @json(__('ui.confirm_send_qr')),
+                cancelButtonText: @json(__('ui.cancel')),
                 reverseButtons: true,
                 customClass: {
                     popup: 'rounded-[2rem]'
@@ -287,8 +289,8 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire({
-                        title: 'Enviando credencial...',
-                        text: 'Procesando el envío de tu código QR...',
+                        title: @json(__('ui.sending_qr')),
+                        text: @json(__('ui.processing_qr_email')),
                         allowOutsideClick: false,
                         didOpen: () => {
                             Swal.showLoading();

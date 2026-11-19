@@ -24,6 +24,10 @@ class User extends Authenticatable
         'password_hash',
         'documento',
         'activo',
+        'telefono',
+        'direccion',
+        'idioma_preferido',
+        'foto_perfil',
         'remember_token',
     ];
 
@@ -90,7 +94,7 @@ class User extends Authenticatable
 
     public function getFotoPerfilAttribute()
     {
-        return null;
+        return $this->attributes['foto_perfil'] ?? null;
     }
 
     /**

@@ -6,8 +6,6 @@ use App\Models\BeneficiarioSena;
 use App\Models\Canje;
 use App\Models\Restaurante;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class CanjeController extends Controller
@@ -22,7 +20,12 @@ class CanjeController extends Controller
         $user = auth()->user();
 
         // Verificar elegibilidad (beneficiario SENA o administrador)
-        $beneficiario = BeneficiarioSena::where('email', $user->email)
+        $beneficiario = BeneficiarioSena::where(function ($query) use ($user) {
+            $query->where('email', $user->email);
+            if ($user->documento) {
+                $query->orWhere('numero_documento', $user->documento);
+            }
+        })
             ->where('activo', true)
             ->first();
 
@@ -35,9 +38,9 @@ class CanjeController extends Controller
             ->get();
 
         // Obtener el QR activo más reciente de hoy, o el recién generado
-        $ultimoQr = session('nuevoQr') 
-            ?? $canjesHoy->firstWhere('estado', 'pendiente')?->codigo_qr 
-            ?? $canjesHoy->first()?->codigo_qr;
+        $ultimoQr = $canjesHoy
+            ->first(fn (Canje $canje) => $canje->estado === 'pendiente' && $canje->estaVigente())
+            ?->codigo_qr;
 
         // Hora estricta de expiración: 12:00 AM del día siguiente (medianoche de hoy)
         $expiraEn = Carbon::tomorrow()->startOfDay();
@@ -55,24 +58,26 @@ class CanjeController extends Controller
         $user = auth()->user();
 
         // Validar elegibilidad
-        $beneficiario = BeneficiarioSena::where('email', $user->email)
+        $beneficiario = BeneficiarioSena::where(function ($query) use ($user) {
+            $query->where('email', $user->email);
+            if ($user->documento) {
+                $query->orWhere('numero_documento', $user->documento);
+            }
+        })
             ->where('activo', true)
             ->first();
 
         $esBeneficiario = (bool) $beneficiario || $user->isAdmin();
 
         if (!$esBeneficiario) {
-            return back()->with('error', 'No eres beneficiario del programa alimentario SENA.');
+            return back()->with('error', __('ui.benefit_not_active'));
         }
 
         // Obtener restaurante activo o por defecto
-        $restauranteId = $request->restaurante_id 
-            ?? Restaurante::value('id') 
-            ?? 1;
+        $restauranteId = Restaurante::value('id') ?? 1;
 
         // Generar código QR único y seguro
-        $tokenUnico = strtoupper(Str::random(10));
-        $codigoQr = "FP-QR-{$user->id}-" . now()->format('YmdHis') . "-{$tokenUnico}";
+        $codigoQr = 'FP-' . bin2hex(random_bytes(32));
 
         // Regla estricta de vigencia: 12:00 AM (medianoche de hoy)
         $expiraEn = Carbon::tomorrow()->startOfDay();
@@ -82,7 +87,7 @@ class CanjeController extends Controller
             'usuario_id'           => $user->id,
             'beneficiario_sena_id' => $beneficiario?->id,
             'restaurante_id'       => $restauranteId,
-            'monto'                => $request->monto ?? 0,
+            'monto'                => 0,
             'fecha_canje'          => today(),
             'periodo'              => now()->format('Y-m-d H:i:s'),
             'estado'               => 'pendiente',
@@ -92,7 +97,7 @@ class CanjeController extends Controller
         ]);
 
         return back()
-            ->with('success', '¡Nuevo código QR generado exitosamente!')
+            ->with('success', __('ui.qr_generated'))
             ->with('nuevoQr', $codigoQr);
     }
 
@@ -103,49 +108,69 @@ class CanjeController extends Controller
     public function validar(Request $request)
     {
         $request->validate([
-            'codigo_qr' => 'required|string',
+            'codigo_qr' => 'required|string|max:100',
         ]);
 
-        $canje = Canje::where('codigo_qr', $request->codigo_qr)->first();
+        $canje = Canje::where('codigo_qr', $request->string('codigo_qr')->trim()->value())->first();
 
         if (!$canje) {
             return response()->json([
                 'valido'  => false,
-                'mensaje' => 'Código QR no encontrado en el sistema.',
+                'mensaje' => __('ui.qr_not_found'),
             ], 404);
         }
 
+        if ($canje->estado !== 'pendiente') {
+            return response()->json([
+                'valido'  => false,
+                'mensaje' => __('ui.qr_unavailable'),
+                'estado'  => $canje->estado,
+            ], 409);
+        }
+
         // Regla estricta de vigencia: si ya pasaron las 12:00 AM (medianoche) del día
-        if (Carbon::now()->greaterThanOrEqualTo($canje->expira_en) || !Carbon::parse($canje->fecha_canje)->isToday()) {
+        if (!$canje->expira_en || Carbon::now()->greaterThanOrEqualTo($canje->expira_en) || !Carbon::parse($canje->fecha_canje)->isToday()) {
             if ($canje->estado !== 'expirado') {
                 $canje->update(['estado' => 'expirado']);
             }
 
             return response()->json([
                 'valido'   => false,
-                'mensaje'  => 'El código QR ha expirado. Todos los códigos expiran automáticamente a las 12:00 AM (medianoche).',
+                'mensaje'  => __('ui.qr_expired'),
                 'estado'   => 'expirado',
                 'expirado' => true,
             ], 410);
         }
 
-        // Verificar si ya fue utilizado
-        if (in_array($canje->estado, ['exitoso', 'entregado'])) {
+        $beneficiario = $canje->user;
+        if (!$beneficiario || (!$beneficiario->isBeneficiario() && !$beneficiario->isAdmin())) {
             return response()->json([
-                'valido'  => false,
-                'mensaje' => 'Este código QR ya fue redimido previamente.',
-                'estado'  => $canje->estado,
+                'valido' => false,
+                'mensaje' => __('ui.benefit_not_active'),
+                'estado' => 'inactivo',
+            ], 403);
+        }
+
+        // A claim on the pending state prevents the same QR being redeemed twice concurrently.
+        $actualizado = Canje::query()
+            ->whereKey($canje->id)
+            ->where('estado', 'pendiente')
+            ->where('expira_en', '>', now())
+            ->update(['estado' => 'exitoso']);
+
+        if (!$actualizado) {
+            return response()->json([
+                'valido' => false,
+                'mensaje' => __('ui.qr_already_used_or_expired'),
+                'estado' => $canje->fresh()->estado,
             ], 409);
         }
 
-        // Marcar como exitoso
-        $canje->update([
-            'estado' => 'exitoso',
-        ]);
+        $canje->refresh();
 
         return response()->json([
             'valido'      => true,
-            'mensaje'     => '¡Beneficio validado y canjeado exitosamente!',
+            'mensaje'     => __('ui.qr_validated'),
             'canje'       => $canje->load('user:id,nombre,email', 'restaurante:id,nombre'),
             'hora_canje'  => now()->format('h:i:s A'),
             'beneficiario'=> $canje->user?->nombre,
@@ -167,18 +192,19 @@ class CanjeController extends Controller
 
         // 1. Validar que sea beneficiario activo o administrador
         if (!$user->isBeneficiario() && !$user->isAdmin()) {
-            return back()->with('error', 'Solo los beneficiarios activos del programa alimentario SENA pueden recibir credenciales QR.');
+            return back()->with('error', __('ui.benefit_not_active'));
         }
 
         // 2. Buscar el QR activo de hoy
         $canje = Canje::where('usuario_id', $user->id)
             ->whereDate('fecha_canje', today())
             ->where('estado', 'pendiente')
+            ->where('expira_en', '>', now())
             ->latest('id')
             ->first();
 
         if (!$canje || empty($canje->codigo_qr)) {
-            return back()->with('error', 'No tienes una credencial QR activa generada hoy. Por favor genera tu código QR primero antes de enviarlo por correo.');
+            return back()->with('error', __('ui.no_active_qr_to_email'));
         }
 
         try {
@@ -200,19 +226,22 @@ class CanjeController extends Controller
             \App\Services\SrsFoodPassService::registrarAuditoria(
                 'QR_ENVIADO_CORREO',
                 'Beneficios SENA',
-                "Credencial QR {$canje->codigo_qr} enviada satisfactoriamente al correo {$user->email}.",
+                "Credencial QR del canje #{$canje->id} enviada satisfactoriamente.",
                 [
                     'canje_id'    => $canje->id,
-                    'codigo_qr'   => $canje->codigo_qr,
-                    'email'       => $user->email,
                     'fecha_canje' => $canje->fecha_canje,
                 ]
             );
 
-            return back()->with('success', "¡Código QR enviado exitosamente a tu correo ({$user->email})! Incluye imagen y archivo adjunto.");
+            return back()->with('success', __('ui.qr_sent_to_email', ['email' => $user->email]));
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error("Error al enviar QR por correo a {$user->email}: " . $e->getMessage());
-            return back()->with('error', 'Ocurrió un error al enviar el correo con el código QR. Inténtalo de nuevo.');
+            \Illuminate\Support\Facades\Log::error('QR email delivery failed.', [
+                'user_id' => $user->id,
+                'canje_id' => $canje->id,
+                'exception' => $e,
+            ]);
+
+            return back()->with('error', __('ui.qr_email_failed'));
         }
     }
 }

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html class="light" lang="es"><head>
+<html class="light" lang="{{ app()->getLocale() }}"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -96,54 +96,52 @@
 <!-- TopNavBar Shell -->
 <header class="fixed top-0 right-0 w-full lg:w-[calc(100%-16rem)] h-16 z-30 bg-white/80 dark:bg-[#121f05]/80 backdrop-blur-md shadow-[0px_20px_40px_rgba(18,31,5,0.06)] flex justify-between items-center px-6 transition-colors duration-300">
 <div class="flex items-center gap-4 flex-1">
-<div class="lg:hidden text-lg font-bold text-[#273517] dark:text-white">FoodPass</div>
+<div class="lg:hidden pl-12 text-lg font-bold text-[#273517] dark:text-white">FoodPass</div>
 </div>
 
 <div class="flex items-center gap-6 relative">
 <!-- Campana de Notificaciones -->
 <div class="relative">
+@php
+    $notificacionesNoLeidas = auth()->user()->unreadNotifications()->count();
+    $notificacionesRecientes = auth()->user()->notifications()->latest()->limit(8)->get();
+@endphp
 <button @click="showNotifs = !showNotifs" @click.away="showNotifs = false" class="relative p-2 text-on-background hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors focus:outline-none">
 <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+@if($notificacionesNoLeidas > 0)
 <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-primary-container rounded-full ring-2 ring-white"></span>
+@endif
 </button>
 
 <!-- Popover de notificaciones -->
-<div x-show="showNotifs" x-transition x-cloak class="absolute right-0 mt-2 w-80 bg-white dark:bg-[#1f2d12] rounded-2xl shadow-xl border border-gray-100 dark:border-white/10 py-3 z-50">
+<div x-show="showNotifs" x-transition x-cloak class="absolute right-0 mt-2 w-[min(20rem,calc(100vw-2rem))] bg-white dark:bg-[#1f2d12] rounded-2xl shadow-xl border border-gray-100 dark:border-white/10 py-3 z-50">
 <div class="px-4 pb-2 border-b border-gray-100 dark:border-white/10 flex items-center justify-between">
-<span class="font-headline font-bold text-sm text-on-background dark:text-white">Notificaciones de Menú</span>
-<span class="text-[10px] bg-primary-container text-white px-2 py-0.5 rounded-full font-bold">2 nuevas</span>
+<span class="font-headline font-bold text-sm text-on-background dark:text-white">{{ __('ui.notifications') }}</span>
+@if($notificacionesNoLeidas > 0)
+<form method="POST" action="{{ route('notifications.read-all') }}">
+    @csrf
+    <button type="submit" class="text-[10px] font-semibold text-primary-container hover:underline">{{ __('ui.mark_all_read') }}</button>
+</form>
+@endif
 </div>
 <div class="divide-y divide-gray-50 dark:divide-white/5 max-h-72 overflow-y-auto">
-<div class="p-3.5 hover:bg-surface-container-low/50 transition-colors flex items-start gap-3">
-<div class="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0 text-sm mt-0.5">
-<span class="material-symbols-outlined text-[18px]">block</span>
-</div>
-<div class="flex-1">
-<p class="text-xs font-bold text-on-background dark:text-white">Platillo Agotado</p>
-<p class="text-xs text-on-surface-variant dark:text-gray-300 font-medium mt-0.5">El platillo <span class="font-bold text-red-600">Sopa de Lima</span> se encuentra agotado actualmente.</p>
-<span class="text-[10px] text-gray-400 mt-1 block">Hace 15 min</span>
-</div>
-</div>
-<div class="p-3.5 hover:bg-surface-container-low/50 transition-colors flex items-start gap-3">
-<div class="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 text-sm mt-0.5">
-<span class="material-symbols-outlined text-[18px]">sell</span>
-</div>
-<div class="flex-1">
-<p class="text-xs font-bold text-on-background dark:text-white">Cambio de Precio</p>
-<p class="text-xs text-on-surface-variant dark:text-gray-300 font-medium mt-0.5"><span class="font-bold text-amber-700">Carne de Cerdo</span> cambió de precio a <span class="font-bold text-primary">$9.500 COP</span>.</p>
-<span class="text-[10px] text-gray-400 mt-1 block">Hace 1 hora</span>
-</div>
-</div>
-<div class="p-3.5 hover:bg-surface-container-low/50 transition-colors flex items-start gap-3">
-<div class="w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center shrink-0 text-sm mt-0.5">
-<span class="material-symbols-outlined text-[18px]">restaurant_menu</span>
-</div>
-<div class="flex-1">
-<p class="text-xs font-bold text-on-background dark:text-white">Menú Actualizado</p>
-<p class="text-xs text-on-surface-variant dark:text-gray-300 font-medium mt-0.5">El menú de la Cafetería SENA ha sido actualizado para la jornada de hoy.</p>
-<span class="text-[10px] text-gray-400 mt-1 block">Hoy, 08:00 AM</span>
-</div>
-</div>
+@forelse($notificacionesRecientes as $notificacion)
+    <div class="p-3.5 flex items-start gap-3 {{ empty($notificacion->read_at) ? 'bg-orange-50/50 dark:bg-white/5' : '' }}">
+        <span class="material-symbols-outlined text-primary-container text-[18px] mt-0.5">notifications</span>
+        <div class="flex-1 min-w-0">
+            <p class="text-xs text-on-surface-variant dark:text-gray-300">{{ $notificacion->data['message'] ?? __('ui.notifications') }}</p>
+            <span class="text-[10px] text-gray-400 mt-1 block">{{ $notificacion->created_at->diffForHumans() }}</span>
+            @if(empty($notificacion->read_at))
+                <form method="POST" action="{{ route('notifications.read', $notificacion->id) }}" class="mt-1">
+                    @csrf
+                    <button type="submit" class="text-[10px] font-semibold text-primary-container hover:underline">{{ __('ui.mark_read') }}</button>
+                </form>
+            @endif
+        </div>
+    </div>
+@empty
+    <p class="p-6 text-center text-xs text-gray-500">{{ __('ui.no_notifications') }}</p>
+@endforelse
 </div>
 </div>
 </div>
@@ -154,8 +152,8 @@
 <main class="lg:ml-64 pt-24 px-6 pb-12 min-h-screen">
 <!-- Welcome Section -->
 <section class="mb-8">
-<h2 class="text-4xl font-headline font-extrabold text-on-background tracking-tight mb-2">¡Hola, {{ explode(' ', auth()->user()->name)[0] }}!</h2>
-<p class="text-on-surface-variant font-body">Bienvenido a tu panel artesanal de hoy.</p>
+<h2 class="text-4xl font-headline font-extrabold text-on-background tracking-tight mb-2">{{ __('ui.greeting', ['name' => explode(' ', auth()->user()->name)[0]]) }}</h2>
+<p class="text-on-surface-variant font-body">{{ __('ui.dashboard_welcome') }}</p>
 </section>
 
 <!-- Banner Estado de Beneficiario (RF01 - SRS FoodPass) -->
@@ -171,16 +169,16 @@
                         <span class="w-2 h-2 rounded-full bg-[#2F9B34] animate-pulse"></span>
                         Padrón Oficial Verificado
                     </div>
-                    <h3 class="text-2xl font-headline font-bold text-white tracking-tight">Eres beneficiario activo</h3>
+                    <h3 class="text-2xl font-headline font-bold text-white tracking-tight">{{ __('ui.active_beneficiary_title') }}</h3>
                     <p class="text-emerald-100/80 text-sm mt-1 max-w-xl">
-                        Tu apoyo alimentario SENA se encuentra habilitado para la jornada de hoy. Puedes generar tu credencial QR y enviarla directamente a tu correo electrónico.
+                        {{ __('ui.active_beneficiary_description') }}
                     </p>
                 </div>
             </div>
             <div class="flex flex-wrap items-center gap-3 relative z-10 w-full md:w-auto shrink-0">
                 <a href="{{ route('canje') }}" class="w-full sm:w-auto text-center px-6 py-3.5 bg-[#F97F2D] hover:bg-[#e06d1f] text-white font-bold rounded-2xl shadow-lg shadow-[#F97F2D]/30 transition-all flex items-center justify-center gap-2 text-sm active:scale-95">
                     <span class="material-symbols-outlined text-lg">qr_code</span>
-                    <span>Ver / Generar QR</span>
+                    <span>{{ __('ui.view_generate_qr') }}</span>
                 </a>
             </div>
             <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-[#2F9B34]/10 rounded-full blur-2xl"></div>
@@ -193,18 +191,18 @@
                 </div>
                 <div>
                     <div class="inline-flex items-center gap-2 bg-amber-500/20 text-amber-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2">
-                        Padrón Oficial SENA
+                        {{ __('ui.sena_roster') }}
                     </div>
-                    <h3 class="text-2xl font-headline font-bold text-white tracking-tight">No eres beneficiario activo</h3>
+                    <h3 class="text-2xl font-headline font-bold text-white tracking-tight">{{ __('ui.inactive_beneficiary_title') }}</h3>
                     <p class="text-amber-100/80 text-sm mt-1 max-w-xl">
-                        Tu documento no figura en el padrón activo de apoyo alimentario para el ciclo actual. Puedes ordenar tus comidas desde el Menú Digital o consultar con Bienestar al Aprendiz.
+                        {{ __('ui.inactive_beneficiary_description') }}
                     </p>
                 </div>
             </div>
             <div class="flex flex-wrap items-center gap-3 relative z-10 w-full md:w-auto shrink-0">
                 <a href="{{ route('menu-digital') }}" class="w-full sm:w-auto text-center px-6 py-3.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm active:scale-95">
                     <span class="material-symbols-outlined text-lg">restaurant_menu</span>
-                    <span>Ver Menú Digital</span>
+                    <span>{{ __('ui.view_digital_menu') }}</span>
                 </a>
             </div>
             <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-amber-500/10 rounded-full blur-2xl"></div>
@@ -217,13 +215,13 @@
 <div class="md:col-span-8 bg-surface-container-lowest rounded-[2rem] p-8 shadow-[0px_20px_40px_rgba(18,31,5,0.04)] relative overflow-hidden group">
 <div class="relative z-10 flex flex-col h-full justify-between">
 <div>
-<span class="bg-tertiary-container text-on-tertiary-container text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-6 inline-block">Beneficio SENA</span>
-<h3 class="text-on-background text-2xl font-headline font-bold mb-1">Canjes QR Disponibles</h3>
-<p class="text-on-surface-variant mb-8">Genera tu código QR para redimir tu beneficio alimentario</p>
+<span class="bg-tertiary-container text-on-tertiary-container text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-6 inline-block">{{ __('ui.sena_benefit') }}</span>
+<h3 class="text-on-background text-2xl font-headline font-bold mb-1">{{ __('ui.qr_redemptions') }}</h3>
+<p class="text-on-surface-variant mb-8">{{ __('ui.generate_qr_description') }}</p>
 </div>
 <div class="flex items-end gap-4">
 <span class="text-7xl font-headline font-extrabold text-primary-container tracking-tighter">∞</span>
-<span class="text-on-surface-variant text-xl font-headline font-semibold pb-2">sin límite diario</span>
+<span class="text-on-surface-variant text-xl font-headline font-semibold pb-2">{{ __('ui.no_daily_limit') }}</span>
 </div>
 </div>
 <!-- Abstract Decorative Element -->
@@ -240,11 +238,11 @@
 <div class="w-12 h-12 bg-surface-container-lowest rounded-2xl flex items-center justify-center">
 <span class="material-symbols-outlined text-primary" data-icon="shopping_bag">shopping_bag</span>
 </div>
-<span class="text-xs font-bold text-tertiary">+2 esta semana</span>
+<span class="text-xs font-bold text-tertiary">{{ __('ui.orders_this_week', ['count' => $pedidosEstaSemana]) }}</span>
 </div>
 <div>
-<p class="text-on-surface-variant text-sm font-semibold uppercase tracking-wider mb-1">Pedidos realizados</p>
-<p class="text-3xl font-headline font-extrabold text-on-background">48</p>
+<p class="text-on-surface-variant text-sm font-semibold uppercase tracking-wider mb-1">{{ __('ui.orders_made') }}</p>
+<p class="text-3xl font-headline font-extrabold text-on-background">{{ $totalPedidos }}</p>
 </div>
 </div>
 <!-- Botón Canje QR -->
@@ -258,8 +256,8 @@
 </div>
 </div>
 <div>
-<p class="text-white/60 text-sm font-semibold uppercase tracking-wider mb-1">Canje QR</p>
-<p class="text-2xl font-headline font-bold">Generar QR</p>
+<p class="text-white/60 text-sm font-semibold uppercase tracking-wider mb-1">{{ __('ui.qr_exchange') }}</p>
+<p class="text-2xl font-headline font-bold">{{ __('ui.generate_qr') }}</p>
 </div>
 </a>
 </div>
@@ -269,56 +267,43 @@
 <!-- Activity Ledger (2/3 width) -->
 <div class="lg:col-span-2">
 <div class="flex items-center justify-between mb-6 px-2">
-<h4 class="text-xl font-headline font-bold text-on-background">Historial de Consumo</h4>
-<a class="text-primary font-semibold text-sm hover:underline" href="{{ route('historial') }}">Ver todo</a>
+<h4 class="text-xl font-headline font-bold text-on-background">{{ __('ui.recent_redemptions') }}</h4>
+<a class="text-primary font-semibold text-sm hover:underline" href="{{ route('historial') }}">{{ __('ui.view_all') }}</a>
 </div>
 <div class="bg-surface-container-lowest rounded-[2rem] overflow-hidden">
-<div class="p-6 flex items-center gap-4 hover:bg-surface-container-low transition-colors duration-200">
-<div class="w-14 h-14 rounded-2xl bg-surface-container flex items-center justify-center flex-shrink-0">
-<span class="material-symbols-outlined text-on-surface" data-icon="skillet">skillet</span>
+@forelse($canjesRecientes as $canje)
+<div class="p-6 flex items-center gap-4 hover:bg-surface-container-low transition-colors duration-200 border-b border-surface-container">
+    <div class="w-14 h-14 rounded-2xl bg-surface-container flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined text-on-surface">qr_code_2</span>
+    </div>
+    <div class="flex-1 min-w-0">
+        <p class="font-headline font-bold text-on-background truncate">{{ $canje->detalle ?: __('ui.sena_benefit') }}</p>
+        <p class="text-sm text-on-surface-variant">{{ __('ui.status_' . $canje->estado) }}</p>
+    </div>
+    <div class="text-right shrink-0">
+        <p class="text-xs text-on-surface-variant">{{ $canje->creado_en?->translatedFormat('d M Y') }}</p>
+        <p class="text-xs text-on-surface-variant">{{ $canje->creado_en?->format('h:i A') }}</p>
+    </div>
 </div>
-<div class="flex-1">
-<p class="font-headline font-bold text-on-background">Lasaña de Berenjenas</p>
-<p class="text-sm text-on-surface-variant">Restaurante "La Toscana"</p>
-</div>
-<div class="text-right">
-<p class="font-headline font-bold text-on-background">-1</p>
-<p class="text-xs text-on-surface-variant">Hoy, 12:45 PM</p>
-</div>
-</div>
-<div class="mx-6 h-0.5 bg-surface-container-high/50"></div>
-<div class="p-6 flex items-center gap-4 hover:bg-surface-container-low transition-colors duration-200">
-<div class="w-14 h-14 rounded-2xl bg-surface-container flex items-center justify-center flex-shrink-0">
-<span class="material-symbols-outlined text-on-surface" data-icon="bakery_dining">bakery_dining</span>
-</div>
-<div class="flex-1">
-<p class="font-headline font-bold text-on-background">Combo Desayuno Artesanal</p>
-<p class="text-sm text-on-surface-variant">Café del Parque</p>
-</div>
-<div class="text-right">
-<p class="font-headline font-bold text-on-background">-1</p>
-<p class="text-xs text-on-surface-variant">Ayer, 09:15 AM</p>
-</div>
-</div>
+@empty
+<p class="p-6 text-center text-sm text-on-surface-variant">{{ __('ui.no_recent_redemptions') }}</p>
+@endforelse
 </div>
 </div>
 <!-- Featured "Freshness" Section (1/3 width) -->
 <div class="lg:col-span-1">
 <div class="mb-6 px-2">
-<h4 class="text-xl font-headline font-bold text-on-background">Sugerencia del día</h4>
+<h4 class="text-xl font-headline font-bold text-on-background">{{ __('ui.digital_menu') }}</h4>
 </div>
 <div class="bg-surface-container-low rounded-[2rem] p-2 flex flex-col gap-4">
-<div class="relative h-48 w-full rounded-[1.8rem] overflow-hidden">
-<img alt="Salad plate" class="w-full h-full object-cover" data-alt="vibrant gourmet salad bowl with fresh greens, grilled salmon, and citrus dressing on a rustic wooden table" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRWCPCR71-81hVJoJQNPsDw8JWjVlr3C0npYS9FYvAqt4ZG4W8uaeugKrVmWwH07UgP49TZAhXI5mQ-vrtjgkcJFd9i3cp241m6tCMe1JeCNdCglkT-8APsxY1cwe9p2_I1YjIyqFa9bBKxZ1YoKhO8JuaucCI6spc3JvlMn6XzcqDYAdcEXlR3KQOuZLa_8HFoVWmMXJ9mPsD2rOh8eIKwnnmkAXJJ522njLHGM9YFDtRjT2A2bADxIRYbDOS_X7UKLKMIGVCYkg"/>
-<div class="absolute top-4 left-4">
-<span class="bg-tertiary-container text-on-tertiary-container text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full">En Stock</span>
-</div>
+<div class="h-48 w-full rounded-[1.8rem] bg-gradient-to-br from-[#283618] to-[#527332] flex items-center justify-center">
+    <span class="material-symbols-outlined text-white/80 text-7xl" aria-hidden="true">restaurant_menu</span>
 </div>
 <div class="px-4 pb-6 pt-2">
-<h5 class="text-lg font-headline font-bold text-on-background mb-1">Poke Bowl de Salmón</h5>
-<p class="text-sm text-on-surface-variant mb-6 leading-relaxed">Arroz integral, aguacate fresco y edamame con aderezo cítrico.</p>
+<h5 class="text-lg font-headline font-bold text-on-background mb-1">{{ __('ui.order_from_cafeteria') }}</h5>
+<p class="text-sm text-on-surface-variant mb-6 leading-relaxed">{{ __('ui.browse_cafeteria_menu') }}</p>
 <a href="{{ route('menu-digital') }}" class="w-full bg-primary-container text-on-primary-container font-headline font-bold py-4 rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary-container/10 flex items-center justify-center">
-    Pedir ahora
+    {{ __('ui.view_menu') }}
 </a>
 </div>
 </div>
@@ -329,7 +314,7 @@
 <a href="{{ route('canje') }}" class="fixed bottom-8 right-8 w-16 h-16 bg-primary-container text-on-primary-container rounded-full shadow-[0px_20px_40px_rgba(18,31,5,0.2)] flex items-center justify-center group hover:scale-110 active:scale-95 transition-all z-50">
 <span class="material-symbols-outlined text-3xl" data-icon="qr_code_2">qr_code_2</span>
 <div class="absolute right-full mr-4 bg-inverse-surface text-white text-sm font-bold py-2 px-4 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-    Generar QR de Canje
+    {{ __('ui.generate_qr') }}
 </div>
 </a>
 </body></html>

@@ -52,6 +52,9 @@ class PerfilController extends Controller
         $data = [
             'nombre' => $request->name,
             'email'  => $request->email,
+            'telefono' => $request->telefono,
+            'direccion' => $request->direccion,
+            'idioma_preferido' => $request->input('idioma_preferido', $user->idioma_preferido ?? 'es'),
         ];
 
         if ($request->filled('password')) {

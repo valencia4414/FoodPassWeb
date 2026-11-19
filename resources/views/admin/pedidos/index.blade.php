@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,25 +16,25 @@
         body { font-family: 'Poppins', sans-serif; background-color: #F8F9FA; color: #1E293B; }
     </style>
 </head>
-<body class="flex h-screen overflow-hidden">
+<body class="flex min-h-screen">
 
     @include('partials.sidebar')
 
-    <div class="ml-64 flex-1 flex flex-col h-screen overflow-hidden">
+    <div class="ml-64 min-w-0 flex-1 flex flex-col min-h-screen">
         
         <!-- Header -->
-        <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8 shrink-0 z-10 shadow-sm">
+        <header class="min-h-16 bg-white border-b border-gray-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 px-4 sm:px-8 py-3 shrink-0 z-10 shadow-sm">
             <div class="flex items-center gap-3">
-                <span class="px-3 py-1 rounded-full bg-[#283618] text-white text-xs font-bold uppercase tracking-wider">Administración</span>
-                <h1 class="text-base font-bold text-[#283618]">Pedidos Registrados en la Cafetería</h1>
+                <span class="px-3 py-1 rounded-full bg-[#283618] text-white text-xs font-bold uppercase tracking-wider">{{ __('ui.administration') }}</span>
+                <h1 class="text-base font-bold text-[#283618]">{{ __('ui.admin_orders_title') }}</h1>
             </div>
 
-            <div class="flex items-center gap-2">
-                <a href="{{ route('admin.pedidos') }}" class="px-3 py-1.5 rounded-xl text-xs font-bold {{ !$estado ? 'bg-[#283618] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">Todos</a>
-                <a href="{{ route('admin.pedidos', ['estado' => 'pendiente']) }}" class="px-3 py-1.5 rounded-xl text-xs font-bold {{ strtolower((string)$estado) === 'pendiente' ? 'bg-[#F97F2D] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">Pendientes</a>
-                <a href="{{ route('admin.pedidos', ['estado' => 'preparacion']) }}" class="px-3 py-1.5 rounded-xl text-xs font-bold {{ in_array(strtolower((string)$estado), ['preparacion', 'en_preparacion']) ? 'bg-amber-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">En preparación</a>
-                <a href="{{ route('admin.pedidos', ['estado' => 'entregado']) }}" class="px-3 py-1.5 rounded-xl text-xs font-bold {{ strtolower((string)$estado) === 'entregado' ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">Entregados</a>
-                <a href="{{ route('admin.pedidos', ['estado' => 'cancelado']) }}" class="px-3 py-1.5 rounded-xl text-xs font-bold {{ strtolower((string)$estado) === 'cancelado' ? 'bg-rose-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">Cancelados</a>
+            <div class="flex flex-wrap items-center gap-2">
+                <a href="{{ route('admin.pedidos') }}" class="px-3 py-1.5 rounded-xl text-xs font-bold {{ !$estado ? 'bg-[#283618] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">{{ __('ui.all') }}</a>
+                <a href="{{ route('admin.pedidos', ['estado' => 'pendiente']) }}" class="px-3 py-1.5 rounded-xl text-xs font-bold {{ strtolower((string)$estado) === 'pendiente' ? 'bg-[#F97F2D] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">{{ __('ui.pending') }}</a>
+                <a href="{{ route('admin.pedidos', ['estado' => 'preparacion']) }}" class="px-3 py-1.5 rounded-xl text-xs font-bold {{ in_array(strtolower((string)$estado), ['preparacion', 'en_preparacion']) ? 'bg-amber-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">{{ __('ui.preparing') }}</a>
+                <a href="{{ route('admin.pedidos', ['estado' => 'entregado']) }}" class="px-3 py-1.5 rounded-xl text-xs font-bold {{ strtolower((string)$estado) === 'entregado' ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">{{ __('ui.delivered') }}</a>
+                <a href="{{ route('admin.pedidos', ['estado' => 'cancelado']) }}" class="px-3 py-1.5 rounded-xl text-xs font-bold {{ strtolower((string)$estado) === 'cancelado' ? 'bg-rose-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">{{ __('ui.cancelled') }}</a>
             </div>
         </header>
 
@@ -54,13 +54,12 @@
                         <table class="w-full text-left border-collapse text-xs">
                             <thead>
                                 <tr class="bg-gray-50 text-gray-500 uppercase border-b border-gray-200 text-[11px]">
-                                    <th class="py-3.5 px-6 font-bold">No. Pedido</th>
-                                    <th class="py-3.5 px-6 font-bold">Cliente / Correo</th>
-                                    <th class="py-3.5 px-6 font-bold">Fecha / Hora</th>
-                                    <th class="py-3.5 px-6 font-bold">Total</th>
-                                    <th class="py-3.5 px-6 font-bold">Medio de Pago</th>
-                                    <th class="py-3.5 px-6 font-bold">Estado Actual</th>
-                                    <th class="py-3.5 px-6 font-bold text-right">Cambiar Estado</th>
+                                    <th class="py-3.5 px-4 sm:px-6 font-bold">{{ __('ui.order_number') }}</th>
+                                    <th class="py-3.5 px-4 sm:px-6 font-bold">{{ __('ui.customer_email') }}</th>
+                                    <th class="py-3.5 px-4 sm:px-6 font-bold">{{ __('ui.date_time') }}</th>
+                                    <th class="py-3.5 px-4 sm:px-6 font-bold">{{ __('ui.total') }}</th>
+                                    <th class="py-3.5 px-4 sm:px-6 font-bold">{{ __('ui.current_status') }}</th>
+                                    <th class="py-3.5 px-4 sm:px-6 font-bold text-right">{{ __('ui.change_status') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
@@ -76,28 +75,25 @@
                                         ];
                                     @endphp
                                     <tr class="hover:bg-gray-50/70 transition-colors">
-                                        <td class="py-3.5 px-6 font-bold text-gray-900">
+                                        <td class="py-3.5 px-4 sm:px-6 font-bold text-gray-900">
                                             #FP-{{ str_pad($p->id, 4, '0', STR_PAD_LEFT) }}
                                         </td>
-                                        <td class="py-3.5 px-6">
+                                        <td class="py-3.5 px-4 sm:px-6">
                                             <p class="font-bold text-gray-900">{{ $p->usuario->name ?? ($p->user->name ?? 'Usuario') }}</p>
                                             <p class="text-gray-400 text-[11px]">{{ $p->usuario->email ?? ($p->user->email ?? '') }}</p>
                                         </td>
-                                        <td class="py-3.5 px-6 text-gray-600">
+                                        <td class="py-3.5 px-4 sm:px-6 text-gray-600">
                                             {{ $p->created_at ? \Carbon\Carbon::parse($p->created_at)->format('d/m/Y H:i') : ($p->fecha_pedido ? \Carbon\Carbon::parse($p->fecha_pedido)->format('d/m/Y H:i') : 'N/A') }}
                                         </td>
-                                        <td class="py-3.5 px-6 font-extrabold text-[#F97F2D] text-sm">
+                                        <td class="py-3.5 px-4 sm:px-6 font-extrabold text-[#F97F2D] text-sm">
                                             ${{ number_format($p->total, 0, ',', '.') }} COP
                                         </td>
-                                        <td class="py-3.5 px-6 uppercase font-bold text-gray-700">
-                                            {{ $p->metodo_pago ?? 'Nequi' }}
-                                        </td>
-                                        <td class="py-3.5 px-6">
+                                        <td class="py-3.5 px-4 sm:px-6">
                                             <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase {{ $badges[$estadoNormalizado] ?? 'bg-gray-100 text-gray-800' }}">
                                                 {{ $p->estado }}
                                             </span>
                                         </td>
-                                        <td class="py-3.5 px-6 text-right">
+                                        <td class="py-3.5 px-4 sm:px-6 text-right">
                                             <form action="{{ route('admin.pedidos.estado', $p->id) }}" method="POST" class="inline-flex items-center gap-1.5">
                                                 @csrf
                                                 <select name="estado" onchange="this.form.submit()" class="text-xs px-2.5 py-1.5 rounded-xl border border-gray-300 bg-white font-medium focus:outline-none focus:border-[#F97F2D] shadow-sm">
@@ -111,7 +107,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="py-12 text-center text-gray-400">
+                                        <td colspan="6" class="py-12 text-center text-gray-400">
                                             No hay pedidos registrados en este momento.
                                         </td>
                                     </tr>

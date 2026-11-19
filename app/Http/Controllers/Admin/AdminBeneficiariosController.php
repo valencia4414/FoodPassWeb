@@ -7,6 +7,7 @@ use App\Models\BeneficiarioSena;
 use App\Models\CargaBeneficiario;
 use App\Models\Pedido;
 use App\Models\User;
+use App\Notifications\PedidoEstadoActualizado;
 use App\Services\BeneficiariosImportService;
 use App\Services\SrsFoodPassService;
 use Illuminate\Http\Request;
@@ -219,8 +220,13 @@ class AdminBeneficiariosController extends Controller
         ]);
 
         $pedido = Pedido::findOrFail($id);
+        $estadoAnterior = $pedido->estado;
         $pedido->estado = $request->estado;
         $pedido->save();
+
+        if ($estadoAnterior !== $pedido->estado && $pedido->usuario) {
+            $pedido->usuario->notify(new PedidoEstadoActualizado($pedido));
+        }
 
         return back()->with('success', "Pedido #FP-" . str_pad($pedido->id, 4, '0', STR_PAD_LEFT) . " actualizado a estado '" . ucfirst($pedido->estado) . "'.");
     }

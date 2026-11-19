@@ -121,15 +121,30 @@ Route::middleware('auth')->group(function () {
         ->name('canje');
 
     Route::post('/canje', [CanjeController::class, 'store'])
+        ->middleware('throttle:10,1')
         ->name('canje.store');
 
     // Envío del código QR activo por correo (RF04 y Solicitud Aprendiz)
     Route::post('/canje/enviar-correo', [CanjeController::class, 'enviarQrCorreo'])
+        ->middleware('throttle:3,1')
         ->name('canje.enviar-correo');
 
     // Endpoint de validación de QR (para cajeros/operadores)
-    Route::post('/canje/validar', [CanjeController::class, 'validar'])
+    Route::middleware(['role:admin,restaurante,operador_restaurante', 'throttle:60,1'])
+        ->post('/canje/validar', [CanjeController::class, 'validar'])
         ->name('canje.validar');
+
+    Route::post('/notificaciones/{notification}/leer', function (Request $request, string $notification) {
+        $request->user()->notifications()->whereKey($notification)->firstOrFail()->markAsRead();
+
+        return back()->with('success', 'Notificación marcada como leída.');
+    })->name('notifications.read');
+
+    Route::post('/notificaciones/leer-todas', function (Request $request) {
+        $request->user()->unreadNotifications()->update(['read_at' => now()]);
+
+        return back()->with('success', 'Notificaciones marcadas como leídas.');
+    })->name('notifications.read-all');
 
     // Harvest Ledger
     Route::get('/harvest-ledger', [HarvestLedgerController::class, 'index'])
