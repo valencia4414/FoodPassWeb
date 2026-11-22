@@ -21,12 +21,17 @@ class CanjeController extends Controller
     {
         $user = auth()->user();
 
-        // Verificar elegibilidad (beneficiario SENA o administrador)
+        // Los administradores no tienen flujo de código QR; redirigir a platillos del día
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.platillos.index');
+        }
+
+        // Verificar elegibilidad (beneficiario SENA)
         $beneficiario = BeneficiarioSena::where('email', $user->email)
             ->where('activo', true)
             ->first();
 
-        $esBeneficiario = (bool) $beneficiario || $user->isAdmin();
+        $esBeneficiario = (bool) $beneficiario;
 
         // Obtener historial de QR generados hoy (sin límite de generación)
         $canjesHoy = Canje::where('usuario_id', $user->id)
@@ -53,6 +58,10 @@ class CanjeController extends Controller
     public function store(Request $request)
     {
         $user = auth()->user();
+
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.platillos.index');
+        }
 
         // Validar elegibilidad
         $beneficiario = BeneficiarioSena::where('email', $user->email)

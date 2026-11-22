@@ -33,7 +33,7 @@ class HistorialController extends Controller
                 'creado_en as created_at',
                 'estado',
                 DB::raw("'Pedido Menú Digital' as detalle"),
-                'total',
+                DB::raw("0.00 as total"),
                 DB::raw("'pedido' as tipo")
             )
             ->where('usuario_id', $userId);
@@ -61,6 +61,7 @@ class HistorialController extends Controller
             $pedido = Pedido::where('usuario_id', auth()->id())->findOrFail($id);
             $pedido->tipo = 'pedido';
             $pedido->detalle = 'Pedido Menú Digital';
+            $pedido->total = 0.00;
         } else {
             $pedido = Canje::where('usuario_id', auth()->id())->findOrFail($id);
             $pedido->tipo = 'canje';

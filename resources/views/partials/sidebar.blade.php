@@ -125,73 +125,69 @@
     </div>
 
     <nav class="flex-1 px-4 space-y-2">
-        <!-- 1. Inicio -->
-        <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('dashboard*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
-            href="{{ route('dashboard') }}">
-            <span class="material-symbols-outlined" @if(request()->routeIs('dashboard*'))
-            style="font-variation-settings: 'FILL' 1;" @endif>home</span>
-            <span class="text-sm">Inicio</span>
-        </a>
-
-        <!-- 2. Menú -->
-        <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('menu-digital*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
-            href="{{ route('menu-digital') }}">
-            <span class="material-symbols-outlined" @if(request()->routeIs('menu-digital*'))
-            style="font-variation-settings: 'FILL' 1;" @endif>restaurant_menu</span>
-            <span class="text-sm">Menú</span>
-        </a>
-
-        <!-- 3. Historial -->
-        <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('historial*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
-            href="{{ route('historial') }}">
-            <span class="material-symbols-outlined" @if(request()->routeIs('historial*'))
-            style="font-variation-settings: 'FILL' 1;" @endif>history</span>
-            <span class="text-sm">Historial</span>
-        </a>
-
-        <!-- 4. Canje QR -->
-        <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('canje*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
-            href="{{ route('canje') }}">
-            <span class="material-symbols-outlined" @if(request()->routeIs('canje*'))
-            style="font-variation-settings: 'FILL' 1;" @endif>qr_code_scanner</span>
-            <span class="text-sm">Canje QR</span>
-        </a>
-
-        <!-- 5. Perfil -->
-        <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('perfil*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
-            href="{{ route('perfil') }}">
-            <span class="material-symbols-outlined" @if(request()->routeIs('perfil*'))
-            style="font-variation-settings: 'FILL' 1;" @endif>person</span>
-            <span class="text-sm">Perfil</span>
-        </a>
-
-        @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isRestaurante()))
-            <div class="pt-4 pb-1 px-4">
-                <p class="text-[10px] font-bold tracking-widest uppercase text-white/40">Administración</p>
+        @if(auth()->check() && auth()->user()->isAdmin())
+            <!-- Vista Exclusiva del Rol Administrador (Solo Platillos del Día, sin QR ni otros módulos) -->
+            <div class="pt-2 pb-1 px-4">
+                <p class="text-[10px] font-bold tracking-widest uppercase text-white/40">Panel Administrador</p>
             </div>
 
-            @if(auth()->user()->isAdmin())
-            <!-- Padrón Beneficiarios -->
-            <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('admin.beneficiarios*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
-                href="{{ route('admin.beneficiarios') }}">
-                <span class="material-symbols-outlined" @if(request()->routeIs('admin.beneficiarios*')) style="font-variation-settings: 'FILL' 1;" @endif>badge</span>
-                <span class="text-sm">Beneficiarios SENA</span>
-            </a>
-            @endif
-
-            <!-- Pedidos Cafetería -->
-            <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('admin.pedidos*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
-                href="{{ route('admin.pedidos') }}">
-                <span class="material-symbols-outlined" @if(request()->routeIs('admin.pedidos*')) style="font-variation-settings: 'FILL' 1;" @endif>receipt_long</span>
-                <span class="text-sm">Pedidos Cafetería</span>
-            </a>
-
-            <!-- Gestión Platillos -->
             <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('admin.platillos*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
                 href="{{ route('admin.platillos.index') }}">
-                <span class="material-symbols-outlined" @if(request()->routeIs('admin.platillos*')) style="font-variation-settings: 'FILL' 1;" @endif>lunch_dining</span>
-                <span class="text-sm">Gestión Platillos</span>
+                <span class="material-symbols-outlined" @if(request()->routeIs('admin.platillos*')) style="font-variation-settings: 'FILL' 1;" @endif>restaurant</span>
+                <span class="text-sm">Platillos del Día</span>
             </a>
+        @else
+            <!-- 1. Inicio -->
+            <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('dashboard*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
+                href="{{ route('dashboard') }}">
+                <span class="material-symbols-outlined" @if(request()->routeIs('dashboard*'))
+                style="font-variation-settings: 'FILL' 1;" @endif>home</span>
+                <span class="text-sm">Inicio</span>
+            </a>
+
+            <!-- 2. Menú -->
+            <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('menu-digital*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
+                href="{{ route('menu-digital') }}">
+                <span class="material-symbols-outlined" @if(request()->routeIs('menu-digital*'))
+                style="font-variation-settings: 'FILL' 1;" @endif>restaurant_menu</span>
+                <span class="text-sm">Menú</span>
+            </a>
+
+            <!-- 3. Historial -->
+            <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('historial*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
+                href="{{ route('historial') }}">
+                <span class="material-symbols-outlined" @if(request()->routeIs('historial*'))
+                style="font-variation-settings: 'FILL' 1;" @endif>history</span>
+                <span class="text-sm">Historial</span>
+            </a>
+
+            <!-- 4. Canje QR -->
+            <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('canje*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
+                href="{{ route('canje') }}">
+                <span class="material-symbols-outlined" @if(request()->routeIs('canje*'))
+                style="font-variation-settings: 'FILL' 1;" @endif>qr_code_scanner</span>
+                <span class="text-sm">Canje QR</span>
+            </a>
+
+            <!-- 5. Perfil -->
+            <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('perfil*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
+                href="{{ route('perfil') }}">
+                <span class="material-symbols-outlined" @if(request()->routeIs('perfil*'))
+                style="font-variation-settings: 'FILL' 1;" @endif>person</span>
+                <span class="text-sm">Perfil</span>
+            </a>
+
+            @if(auth()->check() && auth()->user()->isRestaurante())
+                <div class="pt-4 pb-1 px-4">
+                    <p class="text-[10px] font-bold tracking-widest uppercase text-white/40">Restaurante</p>
+                </div>
+
+                <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('admin.platillos*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
+                    href="{{ route('admin.platillos.index') }}">
+                    <span class="material-symbols-outlined" @if(request()->routeIs('admin.platillos*')) style="font-variation-settings: 'FILL' 1;" @endif>lunch_dining</span>
+                    <span class="text-sm">Gestión Platillos</span>
+                </a>
+            @endif
         @endif
     </nav>
 

@@ -38,6 +38,12 @@ Route::middleware('guest')->group(function () {
 
     Route::post('/register', [RegisterController::class, 'register'])
         ->name('register.post');
+
+    Route::post('/auth/register', [RegisterController::class, 'register'])
+        ->name('auth.register');
+
+    Route::post('/api/register', [RegisterController::class, 'register'])
+        ->name('api.register');
         
     // RF21 — Verificación OTP (MFA para admins)
     Route::get('/otp/verify', [OtpController::class, 'show'])

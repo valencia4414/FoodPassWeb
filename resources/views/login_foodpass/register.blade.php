@@ -108,13 +108,39 @@
 <form action="{{ route('register.post') }}" method="POST" class="space-y-5" id="register-form" novalidate>
 @csrf
 
-{{-- Errores de validación del servidor --}}
-@if ($errors->any())
+{{-- Errores de validación del servidor y Rechazo de Beneficiario --}}
+@if ($errors->has('cedula'))
+<div class="p-4 bg-red-50 dark:bg-red-950/40 border-2 border-red-300 dark:border-red-800 rounded-2xl text-red-900 dark:text-red-200 text-xs font-medium flex items-start gap-3 shadow-sm">
+    <span class="material-symbols-outlined text-red-600 dark:text-red-400 text-xl shrink-0 mt-0.5">do_not_disturb_on</span>
+    <div>
+        <p class="font-bold text-red-950 dark:text-red-100 text-sm">No es parte del beneficio</p>
+        <p class="mt-1 leading-relaxed">{{ $errors->first('cedula') }}</p>
+        <p class="mt-2 text-[11px] text-red-700 dark:text-red-300">Si eres aprendiz activo y consideras que esto es un error, acércate a la oficina de <strong>Bienestar al Aprendiz</strong> para verificar tu inclusión en el padrón alimentario.</p>
+    </div>
+</div>
+@elseif ($errors->any())
 <div class="px-4 py-3 bg-error-container text-on-error-container rounded-xl text-sm font-semibold flex items-center gap-2">
     <span class="material-symbols-outlined text-base">warning</span>
     <span>{{ $errors->first() }}</span>
 </div>
 @endif
+
+<!-- Cédula Field -->
+<div class="space-y-1.5">
+<label class="block text-sm font-semibold text-on-surface ml-1 font-label uppercase tracking-widest text-[10px]" for="cedula">Número de Cédula / Documento</label>
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">badge</span>
+</div>
+<input class="w-full pl-11 pr-4 py-4 bg-surface-container border-2 border-transparent rounded-xl focus:ring-2 focus:ring-tertiary transition-all outline-none text-on-surface placeholder:text-on-surface-variant/50 font-body"
+       id="cedula" name="cedula" placeholder="Ej: 1144098312" value="{{ old('cedula') }}" inputmode="numeric" required type="text"/>
+</div>
+<p id="cedula-error" class="hidden text-xs text-error font-medium ml-1 mt-1 flex items-center gap-1">
+  <span class="material-symbols-outlined text-[16px]">error</span>
+  <span class="error-msg"></span>
+</p>
+<p class="text-[11px] text-on-surface-variant/70 ml-1">Verificamos tu cédula en el padrón oficial de beneficiarios SENA.</p>
+</div>
 
 <!-- Name Field -->
 <div class="space-y-1.5">
@@ -234,6 +260,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!form || !submitBtn) return;
 
     const fields = {
+        cedula: {
+            input: document.getElementById('cedula'),
+            error: document.getElementById('cedula-error'),
+            touched: false,
+            validate: (val) => {
+                const cleaned = (val || '').replace(/[^0-9]/g, '');
+                if (!cleaned) return 'El número de cédula es obligatorio.';
+                if (cleaned.length < 5) return 'La cédula debe tener al menos 5 dígitos numéricos.';
+                return '';
+            }
+        },
         name: {
             input: document.getElementById('name'),
             error: document.getElementById('name-error'),

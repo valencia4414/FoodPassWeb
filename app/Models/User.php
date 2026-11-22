@@ -121,8 +121,18 @@ class User extends Authenticatable
         return $this->roles()->whereIn('nombre', ['restaurante', 'operador_restaurante', 'tecnico'])->exists();
     }
 
+    public function assignRole(string $roleName): void
+    {
+        $role = Role::firstOrCreate(
+            ['nombre' => $roleName],
+            ['descripcion' => ucfirst($roleName)]
+        );
+        $this->roles()->syncWithoutDetaching([$role->id]);
+    }
+
     /**
-     * Valida si el usuario es beneficiario activo en el padrón oficial (beneficiarios_sena).
+     * Valida si el usuario es beneficiario activo en el padrón oficial (beneficiarios_sena)
+     * o cuenta con el rol asignado de beneficiario.
      * Instructores y administradores no reciben apoyo alimentario de aprendices.
      */
     public function isBeneficiario(): bool
@@ -131,7 +141,8 @@ class User extends Authenticatable
             return false;
         }
 
-        return BeneficiarioSena::where(function ($q) {
+        return $this->roles()->where('nombre', 'beneficiario')->exists()
+            || BeneficiarioSena::where(function ($q) {
                 $q->where('email', $this->email);
                 if (!empty($this->documento)) {
                     $q->orWhere('numero_documento', $this->documento);
@@ -148,7 +159,7 @@ class User extends Authenticatable
 
     public function isCliente(): bool
     {
-        return in_array($this->role, ['cliente', 'aprendiz']);
+        return in_array($this->role, ['cliente', 'aprendiz', 'beneficiario']);
     }
 
     public function nombreRolVisible(): string
