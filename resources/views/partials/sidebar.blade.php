@@ -153,13 +153,15 @@
             <span class="text-sm">{{ __('Historial') }}</span>
         </a>
 
-        <!-- 4. Canje QR -->
-        <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('canje*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
-            href="{{ route('canje') }}">
-            <span class="material-symbols-outlined" @if(request()->routeIs('canje*'))
-            style="font-variation-settings: 'FILL' 1;" @endif>qr_code_scanner</span>
-            <span class="text-sm">{{ __('Canje QR') }}</span>
-        </a>
+        @if(auth()->check() && !auth()->user()->isAdmin() && !auth()->user()->isRestaurante() && !auth()->user()->isInstructor())
+            <!-- 4. Canje QR -->
+            <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('canje*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"
+                href="{{ route('canje') }}">
+                <span class="material-symbols-outlined" @if(request()->routeIs('canje*'))
+                style="font-variation-settings: 'FILL' 1;" @endif>qr_code_scanner</span>
+                <span class="text-sm">{{ __('Canje QR') }}</span>
+            </a>
+        @endif
 
         <!-- 5. Perfil -->
         <a class="flex items-center gap-3 rounded-full px-4 py-3 mx-2 transition-all duration-200 {{ request()->routeIs('perfil*') ? 'bg-[#F97F2D] text-white font-semibold shadow-lg shadow-[#F97F2D]/20 active:scale-95' : 'text-white/70 hover:text-white hover:bg-white/10 font-semibold' }}"

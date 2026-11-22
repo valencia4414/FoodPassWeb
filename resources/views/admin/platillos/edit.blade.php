@@ -28,7 +28,7 @@
                 <a href="{{ route('admin.platillos.index') }}" class="p-1.5 rounded-lg text-gray-500 hover:text-black hover:bg-gray-100 transition-colors">
                     <span class="material-symbols-outlined text-[20px]">arrow_back</span>
                 </a>
-                <h1 class="text-base font-bold text-[#283618]">Editar Platillo: {{ $platillo->nombre }}</h1>
+                <h1 class="text-base font-bold text-[#283618]">Editar platillo del menú</h1>
             </div>
         </header>
 
@@ -52,50 +52,16 @@
                         @csrf
                         @method('PUT')
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">Nombre del Platillo *</label>
-                                <input type="text" name="nombre" value="{{ old('nombre', $platillo->nombre) }}" required
-                                       class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-[#F97F2D]">
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">Categoría *</label>
-                                <select name="categoria_id" required class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-[#F97F2D] bg-white">
-                                    @foreach($categorias as $categoria)
-                                        <option value="{{ $categoria->id }}" {{ (string) old('categoria_id', $platillo->categoria_id) === (string) $categoria->id ? 'selected' : '' }}>{{ $categoria->nombre }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">Stock Disponible</label>
-                                <input type="number" name="stock" value="{{ old('stock', $platillo->stock) }}" min="0"
-                                       class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-[#F97F2D]">
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">Restaurante / Cafetería *</label>
-                                <select name="restaurante_id" required class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-[#F97F2D] bg-white">
-                                    @foreach($restaurantes as $r)
-                                        <option value="{{ $r->id }}" {{ old('restaurante_id', $platillo->restaurante_id) == $r->id ? 'selected' : '' }}>{{ $r->nombre }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Nombre del Platillo *</label>
+                            <input type="text" name="nombre" value="{{ old('nombre', $platillo->nombre) }}" required
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-[#F97F2D]">
                         </div>
 
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">Descripción del Platillo *</label>
                             <textarea name="descripcion" rows="3" required
                                       class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-[#F97F2D]">{{ old('descripcion', $platillo->descripcion) }}</textarea>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">Ingredientes (Opcional)</label>
-                            <input type="text" name="ingredientes" value="{{ old('ingredientes', $platillo->ingredientes) }}"
-                                   class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-[#F97F2D]">
                         </div>
 
                         <div>
@@ -111,10 +77,12 @@
                                    class="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#283618] file:text-white hover:file:bg-black">
                         </div>
 
-                        <div class="flex items-center gap-2 pt-2">
-                            <input type="checkbox" name="disponible" id="disponible" value="1" {{ old('disponible', $platillo->disponible) ? 'checked' : '' }}
-                                   class="w-4 h-4 rounded text-[#283618] focus:ring-[#F97F2D]">
-                            <label for="disponible" class="text-xs font-bold text-gray-700">Disponible para compra en el Menú Digital</label>
+                        <div>
+                            <label for="disponible" class="block text-xs font-bold text-gray-700 mb-1">Disponibilidad *</label>
+                            <select name="disponible" id="disponible" required class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-[#F97F2D] bg-white">
+                                <option value="1" {{ (string) old('disponible', (int) $platillo->disponible) === '1' ? 'selected' : '' }}>Disponible</option>
+                                <option value="0" {{ (string) old('disponible', (int) $platillo->disponible) === '0' ? 'selected' : '' }}>Agotado</option>
+                            </select>
                         </div>
 
                         <div class="pt-4 flex gap-3 border-t">

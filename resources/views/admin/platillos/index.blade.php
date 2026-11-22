@@ -26,7 +26,7 @@
         <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8 shrink-0 z-10 shadow-sm">
             <div class="flex items-center gap-3">
                 <span class="px-3 py-1 rounded-full bg-[#283618] text-white text-xs font-bold uppercase tracking-wider">Administración</span>
-                <h1 class="text-base font-bold text-[#283618]">Catálogo y Menú de la Cafetería (Platillos)</h1>
+                <h1 class="text-base font-bold text-[#283618]">Platillos del menú actual</h1>
             </div>
 
             <div class="flex items-center gap-3">
@@ -36,11 +36,6 @@
                     <span>Ver Menú Digital</span>
                 </a>
 
-                <a href="{{ route('admin.platillos.create') }}"
-                   class="px-4 py-2 rounded-xl bg-[#F97F2D] hover:bg-[#e06d20] text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors">
-                    <span class="material-symbols-outlined text-[18px]">add_circle</span>
-                    <span>Nuevo Platillo</span>
-                </a>
             </div>
         </header>
 
@@ -63,65 +58,16 @@
                     </div>
                 @endif
 
-                <!-- Tarjetas de Resumen -->
-                @php
-                    $totalCount = \App\Models\Platillo::count();
-                    $dispCount = \App\Models\Platillo::where('disponible', 1)->count();
-                    $agotCount = \App\Models\Platillo::where('disponible', 0)->count();
-                @endphp
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div class="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex items-center justify-between">
-                        <div>
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Total en Catálogo</p>
-                            <p class="text-3xl font-extrabold text-[#283618] mt-1">{{ $totalCount }}</p>
-                            <p class="text-xs text-gray-400 mt-0.5">Platillos registrados</p>
-                        </div>
-                        <div class="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-600">
-                            <span class="material-symbols-outlined text-2xl">restaurant</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex items-center justify-between">
-                        <div>
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Disponibles</p>
-                            <p class="text-3xl font-extrabold text-emerald-600 mt-1">{{ $dispCount }}</p>
-                            <p class="text-xs text-emerald-700 font-medium mt-0.5">Visibles en Menú Digital</p>
-                        </div>
-                        <div class="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
-                            <span class="material-symbols-outlined text-2xl">check_circle</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex items-center justify-between">
-                        <div>
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-amber-700">Agotados / Pausados</p>
-                            <p class="text-3xl font-extrabold text-amber-600 mt-1">{{ $agotCount }}</p>
-                            <p class="text-xs text-amber-700 font-medium mt-0.5">Desactivados temporalmente</p>
-                        </div>
-                        <div class="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
-                            <span class="material-symbols-outlined text-2xl">pause_circle</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Barra de Filtros -->
+                <!-- Filtro de disponibilidad -->
                 <div class="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-3">
                     <form action="{{ route('admin.platillos.index') }}" method="GET" class="flex-1 flex flex-wrap items-center gap-2">
-                        <select name="categoria" onchange="this.form.submit()" class="px-3.5 py-2 rounded-xl border border-gray-200 text-xs bg-white text-gray-700 font-medium">
-                            <option value="">Todas las categorías</option>
-                            <option value="plato_fuerte" {{ request('categoria') === 'plato_fuerte' ? 'selected' : '' }}>Platos Fuertes</option>
-                            <option value="entrada" {{ request('categoria') === 'entrada' ? 'selected' : '' }}>Entradas</option>
-                            <option value="postre" {{ request('categoria') === 'postre' ? 'selected' : '' }}>Postres</option>
-                            <option value="bebida" {{ request('categoria') === 'bebida' ? 'selected' : '' }}>Bebidas</option>
-                        </select>
-
                         <select name="disponible" onchange="this.form.submit()" class="px-3.5 py-2 rounded-xl border border-gray-200 text-xs bg-white text-gray-700 font-medium">
                             <option value="">Todos los estados</option>
                             <option value="1" {{ request('disponible') === '1' ? 'selected' : '' }}>Solo Disponibles</option>
                             <option value="0" {{ request('disponible') === '0' ? 'selected' : '' }}>Solo Agotados</option>
                         </select>
 
-                        @if(request('categoria') || request('disponible') !== null)
+                        @if(request('disponible') !== null)
                             <a href="{{ route('admin.platillos.index') }}" class="px-3 py-2 rounded-xl border border-gray-200 text-gray-500 hover:text-gray-800 text-xs font-bold">
                                 Limpiar filtros
                             </a>
@@ -136,8 +82,6 @@
                             <thead>
                                 <tr class="bg-gray-50 text-gray-500 uppercase border-b border-gray-200 text-[11px]">
                                     <th class="py-3.5 px-6 font-bold">Platillo / Imagen</th>
-                                    <th class="py-3.5 px-6 font-bold">Categoría</th>
-                                    <th class="py-3.5 px-6 font-bold text-center">Stock</th>
                                     <th class="py-3.5 px-6 font-bold text-center">Disponibilidad</th>
                                     <th class="py-3.5 px-6 font-bold text-right">Acciones</th>
                                 </tr>
@@ -145,18 +89,6 @@
                             <tbody class="divide-y divide-gray-100">
                                 @forelse($platillos as $p)
                                     @php
-                                        $catBadges = [
-                                            'plato_fuerte' => 'bg-emerald-100 text-emerald-800',
-                                            'entrada'      => 'bg-amber-100 text-amber-800',
-                                            'postre'       => 'bg-purple-100 text-purple-800',
-                                            'bebida'       => 'bg-sky-100 text-sky-800',
-                                        ];
-                                        $catLabels = [
-                                            'plato_fuerte' => 'Plato Fuerte',
-                                            'entrada'      => 'Entrada',
-                                            'postre'       => 'Postre',
-                                            'bebida'       => 'Bebida',
-                                        ];
                                         $imgUrl = $p->imagen ? (str_starts_with($p->imagen, 'http') ? $p->imagen : asset('storage/' . $p->imagen)) : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=150&auto=format&fit=crop&q=80';
                                     @endphp
                                     <tr class="hover:bg-gray-50/70 transition-colors">
@@ -168,14 +100,6 @@
                                                     <p class="text-gray-400 text-[11px] truncate max-w-xs">{{ $p->descripcion }}</p>
                                                 </div>
                                             </div>
-                                        </td>
-                                        <td class="py-3.5 px-6">
-                                            <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase {{ $catBadges[$p->categoria] ?? 'bg-gray-100 text-gray-700' }}">
-                                                {{ $catLabels[$p->categoria] ?? $p->categoria }}
-                                            </span>
-                                        </td>
-                                        <td class="py-3.5 px-6 text-center font-bold text-gray-700">
-                                            {{ $p->stock !== null ? $p->stock : 'Ilimitado' }}
                                         </td>
                                         <td class="py-3.5 px-6 text-center">
                                             <form action="{{ route('admin.platillos.disponibilidad', $p->id) }}" method="POST">
@@ -202,21 +126,11 @@
                                                class="p-2 text-gray-500 hover:text-[#283618] inline-block transition-colors" title="Editar platillo">
                                                 <span class="material-symbols-outlined text-[18px]">edit</span>
                                             </a>
-
-                                            <!-- Eliminar -->
-                                            <form action="{{ route('admin.platillos.destroy', $p->id) }}" method="POST" class="inline-block"
-                                                  onsubmit="return confirm('¿Seguro que deseas eliminar el platillo \'{{ addslashes($p->nombre) }}\'?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="p-2 text-gray-400 hover:text-rose-600 transition-colors" title="Eliminar platillo">
-                                                    <span class="material-symbols-outlined text-[18px]">delete</span>
-                                                </button>
-                                            </form>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="py-12 text-center text-gray-400">
+                                        <td colspan="3" class="py-12 text-center text-gray-400">
                                             No se encontraron platillos con los filtros seleccionados.
                                         </td>
                                     </tr>

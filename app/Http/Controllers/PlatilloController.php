@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Categoria;
 use App\Models\Platillo;
-use App\Models\Restaurante;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -18,76 +16,16 @@ class PlatilloController extends Controller
     {
         $query = Platillo::with('restaurante');
 
-        // Filtros opcionales
-        if ($request->filled('restaurante_id')) {
-            $query->where('restaurante_id', $request->restaurante_id);
-        }
-
-        if ($request->filled('categoria')) {
-            $query->where('categoria', $request->categoria);
-        }
-
         if ($request->filled('disponible')) {
             $query->where('disponible', (bool) $request->disponible);
         }
 
-        $platillos     = $query->orderBy('creado_en', 'desc')->paginate(20);
-        $restaurantes  = Restaurante::orderBy('nombre')->get();
+        $platillos = $query
+            ->orderByDesc('disponible')
+            ->orderBy('nombre')
+            ->paginate(20);
 
-        return view('admin.platillos.index', compact('platillos', 'restaurantes'));
-    }
-
-    /**
-     * RF04 – Mostrar formulario de creación.
-     * GET /admin/platillos/create
-     */
-    public function create()
-    {
-        $restaurantes = Restaurante::orderBy('nombre')->get();
-        $categorias = Categoria::orderBy('nombre')->get();
-        return view('admin.platillos.create', compact('restaurantes', 'categorias'));
-    }
-
-    /**
-     * RF04/RF05 – Guardar nuevo platillo con imagen.
-     * POST /admin/platillos
-     */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'restaurante_id' => 'required|exists:restaurantes,id',
-            'categoria_id'   => 'required|exists:categorias,id',
-            'nombre'         => 'required|string|max:255',
-            'descripcion'    => 'required|string',
-            'ingredientes'   => 'nullable|string',
-            'imagen'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'disponible'     => 'boolean',
-            'stock'          => 'nullable|integer|min:0',
-        ]);
-
-        // RF05 – Subida de imagen
-        if ($request->hasFile('imagen')) {
-            $validated['imagen'] = $request->file('imagen')
-                ->store('platillos', 'public');
-        }
-
-        $validated['disponible'] = $request->boolean('disponible', true);
-
-        $platillo = Platillo::create($validated);
-
-        return redirect()
-            ->route('admin.platillos.index')
-            ->with('success', "Platillo \"{$platillo->nombre}\" creado correctamente.");
-    }
-
-    /**
-     * RF04 – Mostrar detalle de un platillo.
-     * GET /admin/platillos/{platillo}
-     */
-    public function show(Platillo $platillo)
-    {
-        $platillo->load('restaurante');
-        return view('admin.platillos.show', compact('platillo'));
+        return view('admin.platillos.index', compact('platillos'));
     }
 
     /**
@@ -96,9 +34,7 @@ class PlatilloController extends Controller
      */
     public function edit(Platillo $platillo)
     {
-        $restaurantes = Restaurante::orderBy('nombre')->get();
-        $categorias = Categoria::orderBy('nombre')->get();
-        return view('admin.platillos.edit', compact('platillo', 'restaurantes', 'categorias'));
+        return view('admin.platillos.edit', compact('platillo'));
     }
 
     /**
@@ -108,52 +44,26 @@ class PlatilloController extends Controller
     public function update(Request $request, Platillo $platillo)
     {
         $validated = $request->validate([
-            'restaurante_id' => 'required|exists:restaurantes,id',
-            'categoria_id'   => 'required|exists:categorias,id',
             'nombre'         => 'required|string|max:255',
-            'descripcion'    => 'required|string',
-            'ingredientes'   => 'nullable|string',
+            'descripcion'    => 'required|string|max:2000',
             'imagen'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'disponible'     => 'boolean',
-            'stock'          => 'nullable|integer|min:0',
+            'disponible'     => 'required|boolean',
         ]);
 
-        // RF05 – Reemplazar imagen si se subió una nueva
         if ($request->hasFile('imagen')) {
-            // Borrar imagen anterior del disco
-            if ($platillo->imagen) {
-                Storage::disk('public')->delete($platillo->imagen);
-            }
-            $validated['imagen'] = $request->file('imagen')
-                ->store('platillos', 'public');
-        }
+            $imagenAnterior = $platillo->imagen;
+            $validated['imagen'] = $request->file('imagen')->store('platillos', 'public');
 
-        $validated['disponible'] = $request->boolean('disponible', $platillo->disponible);
+            if ($imagenAnterior) {
+                Storage::disk('public')->delete($imagenAnterior);
+            }
+        }
 
         $platillo->update($validated);
 
         return redirect()
             ->route('admin.platillos.index')
             ->with('success', "Platillo \"{$platillo->nombre}\" actualizado correctamente.");
-    }
-
-    /**
-     * RF04 – Eliminar platillo y su imagen.
-     * DELETE /admin/platillos/{platillo}
-     */
-    public function destroy(Platillo $platillo)
-    {
-        // Borrar imagen del disco si existe
-        if ($platillo->imagen) {
-            Storage::disk('public')->delete($platillo->imagen);
-        }
-
-        $nombre = $platillo->nombre;
-        $platillo->delete();
-
-        return redirect()
-            ->route('admin.platillos.index')
-            ->with('success', "Platillo \"{$nombre}\" eliminado correctamente.");
     }
 
     /**

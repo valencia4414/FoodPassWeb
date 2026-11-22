@@ -192,8 +192,9 @@ Route::middleware('auth')->group(function () {
             // CRUD Restaurantes
             Route::resource('restaurantes', RestauranteController::class);
 
-            // CRUD Platillos
-            Route::resource('platillos', PlatilloController::class);
+            // Consulta y edición de platillos del menú actual
+            Route::resource('platillos', PlatilloController::class)
+                ->only(['index', 'edit', 'update']);
 
             // RF06 – Toggle disponibilidad
             Route::patch(

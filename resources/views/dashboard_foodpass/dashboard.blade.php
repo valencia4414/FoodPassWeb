@@ -212,6 +212,7 @@
 </div>
 <!-- Bento Grid Summary Cards -->
 <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-12">
+@if(auth()->user()->isBeneficiario())
 <!-- Principal Card: Almuerzos Disponibles -->
 <div class="md:col-span-8 bg-surface-container-lowest rounded-[2rem] p-8 shadow-[0px_20px_40px_rgba(18,31,5,0.04)] relative overflow-hidden group">
 <div class="relative z-10 flex flex-col h-full justify-between">
@@ -231,8 +232,9 @@
 <span class="material-symbols-outlined text-primary-container text-6xl opacity-20" data-icon="qr_code_2" style="font-variation-settings: 'FILL' 1;">qr_code_2</span>
 </div>
 </div>
+@endif
 <!-- Stats Side Cards -->
-<div class="md:col-span-4 flex flex-col gap-6">
+<div class="{{ auth()->user()->isBeneficiario() ? 'md:col-span-4' : 'md:col-span-12' }} flex flex-col gap-6">
 <!-- Pedidos Realizados -->
 <div class="bg-surface-container-low rounded-[2rem] p-6 flex flex-col justify-between h-full">
 <div class="flex justify-between items-start">
@@ -246,6 +248,7 @@
 <p class="text-3xl font-headline font-extrabold text-on-background">48</p>
 </div>
 </div>
+@if(auth()->user()->isBeneficiario())
 <!-- Botón Canje QR -->
 <a href="{{ route('canje') }}" class="bg-inverse-surface rounded-[2rem] p-6 text-white flex flex-col justify-between h-full hover:opacity-95 hover:scale-[1.01] transition-all group cursor-pointer">
 <div class="flex justify-between items-start">
@@ -261,6 +264,7 @@
 <p class="text-2xl font-headline font-bold">Generar QR</p>
 </div>
 </a>
+@endif
 </div>
 </div>
 <!-- Asymmetric Section: Recent Activity & Featured Menu -->
@@ -324,6 +328,7 @@
 </div>
 </div>
 </main>
+@if(auth()->user()->isBeneficiario())
 <!-- Botón flotante QR de Canje -->
 <a href="{{ route('canje') }}" class="fixed bottom-8 right-8 w-16 h-16 bg-primary-container text-on-primary-container rounded-full shadow-[0px_20px_40px_rgba(18,31,5,0.2)] flex items-center justify-center group hover:scale-110 active:scale-95 transition-all z-50">
 <span class="material-symbols-outlined text-3xl" data-icon="qr_code_2">qr_code_2</span>
@@ -331,4 +336,5 @@
     Generar QR de Canje
 </div>
 </a>
+@endif
 </body></html>
