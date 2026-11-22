@@ -4,26 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Cache;
 
 class Platillo extends Model
 {
     use HasFactory;
 
-    protected static function booted(): void
-    {
-        static::saved(fn () => Cache::forget('menu_del_dia'));
-        static::deleted(fn () => Cache::forget('menu_del_dia'));
-    }
-
     protected $table = 'platillos';
+
+    const CREATED_AT = 'creado_en';
+    const UPDATED_AT = 'actualizado_en';
 
     protected $fillable = [
         'restaurante_id',
+        'categoria_id',
         'nombre',
         'descripcion',
-        'precio',
-        'categoria',
         'ingredientes',
         'imagen',
         'disponible',
@@ -31,30 +26,33 @@ class Platillo extends Model
     ];
 
     protected $casts = [
-        'precio'     => 'decimal:2',
         'disponible' => 'boolean',
         'stock'      => 'integer',
+        'creado_en'  => 'datetime',
+        'actualizado_en' => 'datetime',
     ];
 
-    /**
-     * Un platillo pertenece a un restaurante.
-     */
     public function restaurante()
     {
-        return $this->belongsTo(Restaurante::class);
+        return $this->belongsTo(Restaurante::class, 'restaurante_id');
+    }
+
+    public function categoriaRelacion()
+    {
+        return $this->belongsTo(Categoria::class, 'categoria_id');
     }
 
     /**
-     * Decrementa el stock en la cantidad indicada.
-     * Si llega a 0, marca el platillo como no disponible.
-     *
-     * @param  int  $cantidad
-     * @return void
+     * Accesor para mantener compatibilidad con vistas existentes
      */
+    public function getCategoriaAttribute()
+    {
+        return $this->categoriaRelacion?->nombre ?? 'plato_fuerte';
+    }
+
     public function decrementarStock(int $cantidad = 1): void
     {
         if (is_null($this->stock)) {
-            // Sin control de stock, no hace nada
             return;
         }
 

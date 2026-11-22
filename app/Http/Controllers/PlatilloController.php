@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Categoria;
 use App\Models\Platillo;
 use App\Models\Restaurante;
 use Illuminate\Http\Request;
@@ -30,7 +31,7 @@ class PlatilloController extends Controller
             $query->where('disponible', (bool) $request->disponible);
         }
 
-        $platillos     = $query->orderBy('created_at', 'desc')->paginate(20);
+        $platillos     = $query->orderBy('creado_en', 'desc')->paginate(20);
         $restaurantes  = Restaurante::orderBy('nombre')->get();
 
         return view('admin.platillos.index', compact('platillos', 'restaurantes'));
@@ -42,8 +43,9 @@ class PlatilloController extends Controller
      */
     public function create()
     {
-        $restaurantes = Restaurante::where('activo', true)->orderBy('nombre')->get();
-        return view('admin.platillos.create', compact('restaurantes'));
+        $restaurantes = Restaurante::orderBy('nombre')->get();
+        $categorias = Categoria::orderBy('nombre')->get();
+        return view('admin.platillos.create', compact('restaurantes', 'categorias'));
     }
 
     /**
@@ -54,10 +56,9 @@ class PlatilloController extends Controller
     {
         $validated = $request->validate([
             'restaurante_id' => 'required|exists:restaurantes,id',
+            'categoria_id'   => 'required|exists:categorias,id',
             'nombre'         => 'required|string|max:255',
             'descripcion'    => 'required|string',
-            'precio'         => 'required|numeric|min:0',
-            'categoria'      => 'required|in:entrada,plato_fuerte,postre,bebida',
             'ingredientes'   => 'nullable|string',
             'imagen'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'disponible'     => 'boolean',
@@ -95,8 +96,9 @@ class PlatilloController extends Controller
      */
     public function edit(Platillo $platillo)
     {
-        $restaurantes = Restaurante::where('activo', true)->orderBy('nombre')->get();
-        return view('admin.platillos.edit', compact('platillo', 'restaurantes'));
+        $restaurantes = Restaurante::orderBy('nombre')->get();
+        $categorias = Categoria::orderBy('nombre')->get();
+        return view('admin.platillos.edit', compact('platillo', 'restaurantes', 'categorias'));
     }
 
     /**
@@ -107,10 +109,9 @@ class PlatilloController extends Controller
     {
         $validated = $request->validate([
             'restaurante_id' => 'required|exists:restaurantes,id',
+            'categoria_id'   => 'required|exists:categorias,id',
             'nombre'         => 'required|string|max:255',
             'descripcion'    => 'required|string',
-            'precio'         => 'required|numeric|min:0',
-            'categoria'      => 'required|in:entrada,plato_fuerte,postre,bebida',
             'ingredientes'   => 'nullable|string',
             'imagen'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'disponible'     => 'boolean',

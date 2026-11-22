@@ -11,23 +11,27 @@ class Restaurante extends Model
 
     protected $table = 'restaurantes';
 
+    const CREATED_AT = 'creado_en';
+    const UPDATED_AT = 'actualizado_en';
+
     protected $fillable = [
         'nombre',
-        'logo',
         'direccion',
-        'ciudad',
-        'activo',
+        'telefono',
     ];
 
     protected $casts = [
-        'activo' => 'boolean',
+        'creado_en'      => 'datetime',
+        'actualizado_en' => 'datetime',
     ];
 
-    /**
-     * Un restaurante tiene muchos platillos.
-     */
+    public function getActivoAttribute(): bool
+    {
+        return true;
+    }
+
     public function platillos()
     {
-        return $this->hasMany(Platillo::class);
+        return $this->hasMany(Platillo::class, 'restaurante_id');
     }
 }

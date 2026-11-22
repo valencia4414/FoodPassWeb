@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalle del Pedido - FoodPass</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class"
+        }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <style>
@@ -16,6 +21,9 @@
 </head>
 <body class="flex h-screen overflow-hidden">
     @include('partials.sidebar')
+    @php
+        $fechaComprobante = $pedido->creado_en ?? $pedido->fecha_pedido ?? $pedido->fecha_canje;
+    @endphp
 
     <!-- Main Content -->
     <main class="flex-1 ml-64 flex flex-col h-full relative">
@@ -47,7 +55,7 @@
                             <div class="w-16 h-16 bg-orange-100 text-[#F97F2D] rounded-full flex items-center justify-center mb-4">
                                 <span class="material-symbols-outlined text-[32px]">{{ $pedido->tipo == 'canje' ? 'receipt_long' : 'shopping_bag' }}</span>
                             </div>
-                            <h2 class="text-2xl font-extrabold text-gray-900">Detalle {{ $pedido->tipo == 'canje' ? 'del Canje' : 'de la Compra' }}</h2>
+                            <h2 class="text-2xl font-extrabold text-gray-900">Detalle {{ $pedido->tipo == 'canje' ? 'del Canje' : 'del Pedido' }}</h2>
                             <p class="text-gray-400 text-sm">Comprobante No. #FP-{{ str_pad($pedido->id, 4, '0', STR_PAD_LEFT) }}</p>
                         </div>
 
@@ -61,7 +69,9 @@
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-400 text-sm font-medium">FECHA Y HORA</span>
-                                <span class="text-gray-900 text-sm font-semibold">{{ $pedido->created_at->format('d/m/Y - H:i') }}</span>
+                                <span class="text-gray-900 text-sm font-semibold">
+                                    {{ $fechaComprobante ? \Carbon\Carbon::parse($fechaComprobante)->format('d/m/Y - H:i') : 'Fecha no disponible' }}
+                                </span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-400 text-sm font-medium">USUARIO</span>
@@ -69,38 +79,24 @@
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-400 text-sm font-medium">TIPO BENEFICIO</span>
-                                <span class="text-gray-900 text-sm font-semibold">{{ $pedido->tipo == 'canje' ? 'Ayuda Alimentaria SENA' : 'Compra en Menú Digital' }}</span>
+                                <span class="text-gray-900 text-sm font-semibold">{{ $pedido->tipo == 'canje' ? 'Ayuda Alimentaria SENA' : 'Pedido en Menú Digital' }}</span>
                             </div>
                         </div>
 
                         <!-- Resumen de Consumo -->
                         <div class="bg-gray-50 rounded-2xl p-5 mb-8">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="text-gray-700 font-bold text-sm">Producto/Servicio</span>
-                                <span class="text-gray-700 font-bold text-sm">Valor</span>
-                            </div>
-                            <div class="flex justify-between items-center text-sm mb-4">
-                                <span class="text-gray-500 italic">{{ $pedido->detalle ?? 'Almuerzo Artesanal Completo' }}</span>
-                                <span class="text-gray-900 font-medium">${{ number_format($pedido->total ?? 0, 2) }}</span>
-                            </div>
-                            <div class="border-t border-gray-200 pt-3 flex justify-between items-center">
-                                <span class="text-gray-900 font-extrabold">TOTAL</span>
-                                <span class="text-[#F97F2D] font-black text-xl">${{ number_format($pedido->total ?? 0, 2) }}</span>
-                            </div>
+                            <p class="text-gray-700 font-bold text-sm mb-2">Detalle del servicio</p>
+                            <p class="text-gray-500 text-sm">{{ $pedido->detalle ?? 'Almuerzo Artesanal Completo' }}</p>
                             @if($pedido->tipo == 'canje')
-                            <p class="text-[10px] text-gray-400 mt-2 text-center">* Cubierto por el beneficio de ayuda alimentaria.</p>
+                                <p class="text-[10px] text-gray-400 mt-2">Cubierto por el beneficio de ayuda alimentaria.</p>
                             @endif
                         </div>
 
                         <!-- Botones de Acción -->
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 gap-4">
                             <button onclick="window.print()" class="flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-bold text-sm transition-colors">
                                 <span class="material-symbols-outlined text-[18px]">print</span>
                                 Imprimir
-                            </button>
-                            <button class="flex items-center justify-center gap-2 bg-[#F97F2D] hover:bg-[#e06d20] text-white py-3 rounded-xl font-bold text-sm transition-colors shadow-lg shadow-orange-500/20">
-                                <span class="material-symbols-outlined text-[18px]">share</span>
-                                Compartir
                             </button>
                         </div>
                     </div>

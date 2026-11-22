@@ -11,14 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('telefono')->nullable();
-            $table->string('direccion')->nullable();
-            $table->string('idioma_preferido')->default('es');
-            $table->string('foto_perfil')->nullable();
-            $table->string('membresia')->default('Básica');
-            $table->timestamp('fecha_renovacion_membresia')->nullable();
-            $table->integer('puntos_fp')->default(0);
+        Schema::table('usuarios', function (Blueprint $table) {
+            if (!Schema::hasColumn('usuarios', 'telefono')) {
+                $table->string('telefono')->nullable();
+            }
+            if (!Schema::hasColumn('usuarios', 'direccion')) {
+                $table->string('direccion')->nullable();
+            }
+            if (!Schema::hasColumn('usuarios', 'idioma_preferido')) {
+                $table->string('idioma_preferido')->default('es');
+            }
+            if (!Schema::hasColumn('usuarios', 'foto_perfil')) {
+                $table->string('foto_perfil')->nullable();
+            }
+            if (!Schema::hasColumn('usuarios', 'membresia')) {
+                $table->string('membresia')->default('Básica');
+            }
+            if (!Schema::hasColumn('usuarios', 'fecha_renovacion_membresia')) {
+                $table->timestamp('fecha_renovacion_membresia')->nullable();
+            }
         });
     }
 
@@ -27,16 +38,20 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn([
-                'telefono',
-                'direccion',
-                'idioma_preferido',
-                'foto_perfil',
-                'membresia',
-                'fecha_renovacion_membresia',
-                'puntos_fp',
-            ]);
-        });
+        $columns = [
+            'telefono',
+            'direccion',
+            'idioma_preferido',
+            'foto_perfil',
+            'membresia',
+            'fecha_renovacion_membresia',
+        ];
+        $existingColumns = array_filter($columns, fn (string $column) => Schema::hasColumn('usuarios', $column));
+
+        if ($existingColumns) {
+            Schema::table('usuarios', function (Blueprint $table) use ($existingColumns) {
+                $table->dropColumn($existingColumns);
+            });
+        }
     }
 };

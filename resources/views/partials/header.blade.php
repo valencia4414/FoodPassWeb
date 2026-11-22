@@ -18,13 +18,16 @@
             </button>
             <div id="notif-menu" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
                 <div class="p-3 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
-                    <span class="text-xs font-bold text-gray-700 uppercase tracking-wider">Notificaciones</span>
+                    <span class="text-xs font-bold text-gray-700 uppercase tracking-wider">{{ __('Notificaciones') }}</span>
                     @if(auth()->user()->unreadNotifications->count() > 0)
-                    <span class="text-[10px] bg-[#F97F2D] text-white px-2 py-0.5 rounded-full">{{ auth()->user()->unreadNotifications->count() }} nuevas</span>
+                    <form method="POST" action="{{ route('notifications.read-all') }}">
+                        @csrf
+                        <button type="submit" class="text-[10px] font-bold text-[#F97F2D] hover:underline">{{ __('Marcar todas como leídas') }}</button>
+                    </form>
                     @endif
                 </div>
                 <div class="max-h-80 overflow-y-auto">
-                    @forelse(auth()->user()->notifications as $notification)
+                    @forelse(auth()->user()->notifications()->latest()->take(8)->get() as $notification)
                         <div class="p-4 border-b border-gray-50 hover:bg-gray-50 flex gap-3 transition-colors {{ empty($notification->read_at) ? 'bg-orange-50/30' : '' }}">
                             <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0 text-blue-600">
                                 <span class="material-symbols-outlined text-[16px]">info</span>
@@ -33,11 +36,17 @@
                                 <p class="text-sm text-gray-800">{{ $notification->data['message'] ?? 'Tienes una nueva actualización.' }}</p>
                                 <span class="text-[10px] text-gray-400 mt-1 block">{{ $notification->created_at->diffForHumans() }}</span>
                             </div>
+                            @if(empty($notification->read_at))
+                                <form method="POST" action="{{ route('notifications.read', $notification->id) }}" class="ml-auto">
+                                    @csrf
+                                    <button type="submit" class="text-[10px] font-bold text-[#F97F2D]">{{ __('Leída') }}</button>
+                                </form>
+                            @endif
                         </div>
                     @empty
                         <div class="p-6 text-center text-gray-400">
                             <span class="material-symbols-outlined text-[32px] mb-2 opacity-50">notifications_off</span>
-                            <p class="text-sm font-medium">No tienes notificaciones</p>
+                            <p class="text-sm font-medium">{{ __('No tienes notificaciones') }}</p>
                         </div>
                     @endforelse
                 </div>
@@ -56,13 +65,13 @@
             </button>
             <div id="user-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden py-2">
                 <a href="{{ route('perfil') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-[#F97F2D] transition-colors">
-                    <span class="material-symbols-outlined text-[18px]">person</span> Mi Perfil
+                    <span class="material-symbols-outlined text-[18px]">person</span> {{ __('Mi Perfil') }}
                 </a>
                 <div class="h-px bg-gray-100 my-1"></div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
-                        <span class="material-symbols-outlined text-[18px]">logout</span> Cerrar Sesión
+                        <span class="material-symbols-outlined text-[18px]">logout</span> {{ __('Cerrar Sesión') }}
                     </button>
                 </form>
             </div>
@@ -71,16 +80,6 @@
 </header>
 
 <script>
-    // Lógica para abrir/cerrar menú móvil (RNF03)
-    const btnMenu = document.getElementById('btn-menu');
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('overlay');
-
-    if(btnMenu && sidebar && overlay) {
-        btnMenu.onclick = () => { sidebar.classList.toggle('-translate-x-full'); overlay.classList.toggle('hidden'); };
-        overlay.onclick = () => { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); };
-    }
-
     // Cerrar dropdowns al hacer clic fuera
     document.addEventListener('click', function(e) {
         if (!e.target.closest('.x-dropdown')) {

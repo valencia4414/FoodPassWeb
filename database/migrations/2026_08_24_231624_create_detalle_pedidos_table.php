@@ -17,7 +17,6 @@ return new class extends Migration
                 $table->foreignId('pedido_id')->constrained('pedidos')->onDelete('cascade');
                 $table->foreignId('platillo_id')->constrained('platillos')->onDelete('cascade');
                 $table->integer('cantidad');
-                $table->decimal('precio_unitario', 10, 2);
                 $table->timestamps();
             });
         }

@@ -21,10 +21,10 @@ class PerfilController extends Controller
 
         $rules = [
             'name'  => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'email' => 'required|email|max:255|unique:usuarios,email,' . $user->id,
             'telefono' => 'nullable|string|max:20',
             'direccion' => 'nullable|string|max:255',
-            'idioma_preferido' => 'required|string|in:es,en',
+            'idioma_preferido' => 'nullable|string|in:es,en',
             'foto_perfil' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
 
@@ -49,10 +49,14 @@ class PerfilController extends Controller
             'foto_perfil.max' => 'La imagen no debe pesar más de 2MB.',
         ]);
 
-        $data = $request->only('name', 'email', 'telefono', 'direccion', 'idioma_preferido');
+        $data = [
+            'nombre' => $request->name,
+            'email'  => $request->email,
+            'idioma_preferido' => $request->input('idioma_preferido', $user->idioma_preferido ?? 'es'),
+        ];
 
         if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->password);
+            $data['password_hash'] = Hash::make($request->password);
         }
 
         if ($request->hasFile('foto_perfil')) {
@@ -65,6 +69,7 @@ class PerfilController extends Controller
         }
 
         $user->update($data);
+        app()->setLocale($data['idioma_preferido']);
 
         return back()->with('success', 'Perfil actualizado correctamente.');
     }

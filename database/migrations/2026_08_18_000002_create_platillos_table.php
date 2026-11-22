@@ -18,7 +18,6 @@ return new class extends Migration
                   ->onDelete('cascade');
             $table->string('nombre');
             $table->text('descripcion');
-            $table->decimal('precio', 8, 2);
             $table->enum('categoria', ['entrada', 'plato_fuerte', 'postre', 'bebida']);
             $table->text('ingredientes')->nullable();
             $table->string('imagen')->nullable();

@@ -11,14 +11,21 @@ class BeneficiarioSena extends Model
 
     protected $table = 'beneficiarios_sena';
 
+    const CREATED_AT = 'creado_en';
+    const UPDATED_AT = 'actualizado_en';
+
     protected $fillable = [
         'numero_documento',
         'nombre_completo',
         'email',
         'activo',
+        'sincronizado_at',
     ];
 
     protected $casts = [
         'activo' => 'boolean',
+        'sincronizado_at' => 'datetime',
+        'creado_en' => 'datetime',
+        'actualizado_en' => 'datetime',
     ];
 }

@@ -1,10 +1,15 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Historial - FoodPass</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class"
+        }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <style>
@@ -19,23 +24,9 @@
     @include('partials.sidebar')
 
     <!-- Main Content -->
-    <main class="flex-1 ml-64 flex flex-col h-full relative">
-        <!-- Header -->
-        <header class="h-14 bg-white/80 backdrop-blur-md flex items-center justify-between px-8 border-b border-black/5 z-10 shrink-0">
-            <div class="w-96 relative">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[18px]">search</span>
-                <input type="text" placeholder="Buscar pedidos..." class="w-full pl-9 pr-4 py-1.5 bg-gray-100/50 rounded-lg text-sm focus:outline-none">
-            </div>
-            <div class="flex items-center gap-5">
-                <div class="flex items-center gap-3 border-l pl-5 border-gray-200">
-                    <span class="text-sm font-medium">{{ auth()->user()->name }}</span>
-                    <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=F97F2D&color=fff" class="w-8 h-8 rounded-full">
-                </div>
-            </div>
-        </header>
-
+    <main class="flex-1 ml-0 lg:ml-64 flex flex-col h-full relative">
         <!-- Page Content -->
-        <div class="flex-1 overflow-y-auto p-8">
+        <div class="flex-1 overflow-y-auto p-4 pt-16 sm:p-8">
             <div class="max-w-6xl mx-auto space-y-8 pb-20">
                 
                 <!-- RF05 PUNTO 22: TOP STATS DINÁMICOS -->
@@ -44,15 +35,15 @@
                         <h2 class="text-2xl font-bold mb-2">Tu Trayectoria Gastronómica</h2>
                         <p class="text-gray-500 text-sm mb-8">Aquí puedes ver el resumen de tus consumos y beneficios utilizados.</p>
                         
-                        <div class="flex items-center">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-0">
                             <div class="flex-1">
                                 <p class="text-xs text-gray-400 font-medium mb-1 uppercase tracking-wider">TOTAL PEDIDOS</p>
                                 <p class="text-4xl font-bold text-[#F97F2D]">{{ $pedidos->total() }}</p>
                             </div>
-                            <div class="w-px h-16 bg-gray-100 mx-8"></div>
+                            <div class="hidden sm:block w-px h-16 bg-gray-100 mx-8"></div>
                             <div class="flex-1">
                                 <p class="text-xs text-gray-400 font-medium mb-1 uppercase tracking-wider">ESTADO</p>
-                                <p class="text-4xl font-bold text-[#006e16]">{{ auth()->user()->es_beneficiario_sena ? 'SENA' : 'Standard' }}</p>
+                                <p class="text-4xl font-bold text-[#006e16]">{{ auth()->user()->es_beneficiario_sena ? __('Activo') : __('Inactivo') }}</p>
                             </div>
                         </div>
                     </div>
@@ -68,7 +59,7 @@
 
                 <!-- RF05 PUNTO 23: FILTROS FUNCIONALES -->
                 <div class="flex items-center justify-between">
-                    <div class="flex gap-2">
+                    <div class="flex flex-wrap gap-2">
                         <a href="{{ route('historial') }}" 
                            class="px-5 py-2 rounded-full text-sm font-medium border transition-all {{ !request('filter') ? 'bg-black text-white' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50' }}">
                            Todos
@@ -112,7 +103,7 @@
                                             </div>
                                             <div>
                                                 <p class="font-medium text-gray-900">{{ $pedido->detalle ?? 'Beneficio Alimentario' }}</p>
-                                                <p class="text-xs text-gray-500">{{ $pedido->tipo == 'canje' ? 'Canje Único' : 'Compra (Valor: $'.number_format($pedido->total, 2).')' }}</p>
+                                                <p class="text-xs text-gray-500">{{ $pedido->tipo == 'canje' ? 'Canje QR' : 'Pedido Menú Digital' }}</p>
                                             </div>
                                         </div>
                                     </td>
@@ -170,11 +161,6 @@
 
             </div>
         </div>
-
-        <!-- FAB -->
-        <a href="{{ route('canje') }}" class="fixed bottom-8 right-8 w-14 h-14 bg-[#F97F2D] hover:bg-[#e06d20] text-white rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-105 z-50">
-            <span class="material-symbols-outlined text-[28px]">add</span>
-        </a>
     </main>
 </body>
 </html>

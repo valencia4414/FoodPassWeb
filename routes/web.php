@@ -4,11 +4,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HistorialController;
-use App\Http\Controllers\MetodosPagoController;
 use App\Http\Controllers\MenuDigitalController;
-use App\Http\Controllers\CartController;
 use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\CanjeController;
 use App\Http\Controllers\HarvestLedgerController;
@@ -17,7 +16,7 @@ use App\Http\Controllers\RestauranteController;
 use App\Http\Controllers\PedidoController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\CuentaController;
-use App\Http\Controllers\PagoController;
+use App\Http\Controllers\Admin\AdminBeneficiariosController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 
@@ -40,13 +39,21 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [RegisterController::class, 'register'])
         ->name('register.post');
         
-            // RF21 — Verificación OTP (MFA para admins)
+    // RF21 — Verificación OTP (MFA para admins)
     Route::get('/otp/verify', [OtpController::class, 'show'])
         ->name('otp.verify');
     Route::post('/otp/verify', [OtpController::class, 'verify'])
         ->name('otp.verify.post');
     Route::post('/otp/resend', [OtpController::class, 'resend'])
         ->name('otp.resend');
+
+    // --- Autenticación y Vinculación con Google ---
+    Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])
+        ->name('auth.google');
+    Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])
+        ->name('auth.google.callback');
+    Route::post('/auth/google/vincular', [GoogleAuthController::class, 'vincularDirecto'])
+        ->name('auth.google.vincular');
 
     // --- Rutas públicas de Recuperación de Contraseña ---
     Route::get('/forgot-password', function () {
@@ -85,29 +92,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/historial', [HistorialController::class, 'index'])
         ->name('historial');
 
-    // --- RF16: Historial General (endpoints separados) ---
-    Route::get('/historial/pedidos', [HistorialController::class, 'pedidos'])
-        ->name('historial.pedidos');
-
+    // --- RF16: Historial de canjes ---
     Route::get('/historial/canjes', [HistorialController::class, 'canjes'])
         ->name('historial.canjes');
-
-    Route::get('/historial/pagos', [HistorialController::class, 'pagos'])
-        ->name('historial.pagos');
 
     Route::get('/historial/{id}', [HistorialController::class, 'show'])
         ->name('historial.show');
 
-    // Métodos de pago
-    Route::get('/metodos-pago', [MetodosPagoController::class, 'index'])
-        ->name('metodos-pago');
-
     // Menú digital
     Route::get('/menu-digital', [MenuDigitalController::class, 'index'])
         ->name('menu-digital');
-
-    Route::post('/menu-digital/pedido', [PedidoController::class, 'storeWeb'])
-        ->name('pedido.store.web');
 
     // Perfil
     Route::get('/perfil', [PerfilController::class, 'index'])
@@ -116,18 +110,37 @@ Route::middleware('auth')->group(function () {
     Route::put('/perfil', [PerfilController::class, 'update'])
         ->name('perfil.update');
 
+    Route::post('/notificaciones/leer-todas', function (Request $request) {
+        $request->user()->unreadNotifications()->update(['read_at' => now()]);
+
+        return back()->with('success', 'Notificaciones marcadas como leídas.');
+    })->name('notifications.read-all');
+
+    Route::post('/notificaciones/{id}/leer', function (Request $request, string $id) {
+        $notification = $request->user()->notifications()->findOrFail($id);
+        $notification->markAsRead();
+
+        return back();
+    })->name('notifications.read');
+
     Route::delete('/usuarios/mi-cuenta', [CuentaController::class, 'destroy'])
         ->name('cuenta.destroy');
 
-    // --- RF04: Canje y Beneficio SENA ---
-    Route::middleware(['role:beneficiario,admin', 'throttle:foodpass'])->group(function () {
+    // --- RF04: Canje y Beneficio SENA (QR ilimitado, expira a medianoche) ---
+    Route::get('/canje', [CanjeController::class, 'index'])
+        ->name('canje');
 
-        Route::get('/canje', [CanjeController::class, 'index'])
-            ->name('canje');
+    Route::post('/canje', [CanjeController::class, 'store'])
+        ->name('canje.store');
 
-        Route::post('/canje', [CanjeController::class, 'store'])
-            ->name('canje.store');
-    });
+    // Envío del código QR activo por correo (RF04 y Solicitud Aprendiz)
+    Route::post('/canje/enviar-correo', [CanjeController::class, 'enviarQrCorreo'])
+        ->name('canje.enviar-correo');
+
+    // Endpoint de validación de QR (para cajeros/operadores)
+    Route::post('/canje/validar', [CanjeController::class, 'validar'])
+        ->middleware('role:admin,restaurante,operador_restaurante')
+        ->name('canje.validar');
 
     // Harvest Ledger
     Route::get('/harvest-ledger', [HarvestLedgerController::class, 'index'])
@@ -187,36 +200,30 @@ Route::middleware('auth')->group(function () {
                 'platillos/{platillo}/disponibilidad',
                 [PlatilloController::class, 'toggleDisponibilidad']
             )->name('platillos.disponibilidad');
+
+            // --- Padrón Oficial de Beneficiarios SENA ---
+            Route::get('beneficiarios', [AdminBeneficiariosController::class, 'index'])->name('beneficiarios');
+            Route::post('beneficiarios', [AdminBeneficiariosController::class, 'store'])->name('beneficiarios.store');
+            Route::post('beneficiarios/subir-archivo', [AdminBeneficiariosController::class, 'subirArchivo'])->name('beneficiarios.subir');
+            Route::get('beneficiarios/descargar-archivo/{id}', [AdminBeneficiariosController::class, 'descargarArchivoCarga'])->name('beneficiarios.cargas.descargar');
+            Route::match(['post', 'patch'], 'beneficiarios/{id}/toggle-activo', [AdminBeneficiariosController::class, 'toggleActivo'])->name('beneficiarios.toggle');
+            Route::delete('beneficiarios/{id}', [AdminBeneficiariosController::class, 'destroy'])->name('beneficiarios.destroy');
+
+            // --- Gestión de Pedidos de Cafetería ---
+            Route::get('pedidos', [AdminBeneficiariosController::class, 'pedidos'])->name('pedidos');
+            Route::patch('pedidos/{id}/estado', [AdminBeneficiariosController::class, 'actualizarEstadoPedido'])->name('pedidos.estado');
         });
 
-    // RF07, RF08, RF09: Pedidos
+    // RF07, RF08, RF09: Pedidos (sin módulo de pagos)
     Route::middleware('auth:sanctum')->group(function () {
 
         Route::middleware('throttle:foodpass')->group(function () {
 
             Route::get('/pedidos', [PedidoController::class, 'index']);
 
-            Route::post('/pedidos', [PedidoController::class, 'store']);
-
             Route::get('/pedidos/{id}', [PedidoController::class, 'show']);
 
             Route::patch('/pedidos/{id}/estado', [PedidoController::class, 'update']);
-
-            Route::post('/pagos', [PagoController::class, 'store'])
-                ->name('pagos.store');
         });
     });
-
-    // Carrito de Pedidos (Tarea 14)
-    Route::get('/cart', [CartController::class, 'show'])
-        ->name('cart.show');
-
-    Route::post('/cart/add', [CartController::class, 'add'])
-        ->name('cart.add');
-
-    Route::post('/cart/update', [CartController::class, 'update'])
-        ->name('cart.update');
-
-    Route::post('/cart/remove', [CartController::class, 'remove'])
-        ->name('cart.remove');
 });

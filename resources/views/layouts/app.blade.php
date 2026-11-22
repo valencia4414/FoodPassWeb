@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html lang="es">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'FoodPass')</title>
+    @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @endif
     <!-- Tailwind y Fuentes (RNF10 - Consistencia) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -20,7 +22,7 @@
     <!-- Sidebar Reutilizable (RNF06) -->
     @include('partials.sidebar')
 
-    <div class="ml-64 flex-1 flex flex-col overflow-hidden">
+    <div class="ml-0 lg:ml-64 flex-1 flex flex-col overflow-hidden">
         <!-- Header Reutilizable (RNF06) -->
         @include('partials.header')
 
@@ -40,7 +42,7 @@
                 const btn = this.querySelector('button[type="submit"]');
                 if (btn) {
                     btn.disabled = true;
-                    btn.innerHTML = <span class="animate-spin mr-2">⏳</span> Procesando...;
+                    btn.innerHTML = '<span class="animate-spin mr-2">⏳</span> Procesando...';
                 }
             });
         });

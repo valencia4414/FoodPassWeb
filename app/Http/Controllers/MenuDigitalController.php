@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Categoria;
 use App\Models\Platillo;
 use App\Models\Restaurante;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 
 class MenuDigitalController extends Controller
 {
@@ -14,38 +14,31 @@ class MenuDigitalController extends Controller
     {
         $usuario = Auth::user();
 
-        // Restaurante activo (Cafetería SENA)
-        $restaurante = Restaurante::where('activo', true)->first();
+        // Restaurante principal (Cafetería SENA)
+        $restaurante = Restaurante::first();
 
-        // Filtro de categoría desde el tab activo
-        $categoriaActiva = $request->get('categoria', 'todos');
-
-        // Tarea 9: Quitamos "where disponible = true" para poder mostrar platillos AGOTADOS
-        $platillos = Cache::remember('menu_del_dia', 300, function () {
-            return Platillo::orderBy('categoria')->orderBy('nombre')->get();
-        });
-
-        if ($restaurante) {
-            $platillos = $platillos->where('restaurante_id', $restaurante->id);
-        }
+        $categorias = Categoria::orderBy('nombre')->get();
+        $categoriaActiva = (string) $request->query('categoria', 'todos');
 
         if ($categoriaActiva !== 'todos') {
-            $platillos = $platillos->where('categoria', $categoriaActiva);
+            $categoriaId = filter_var($categoriaActiva, FILTER_VALIDATE_INT);
+            $categoriaActiva = $categoriaId !== false && $categorias->contains('id', $categoriaId)
+                ? (string) $categoriaId
+                : 'todos';
         }
 
-        $platillos = $platillos->values();
-
-        // Platillo hero: primer plato fuerte disponible
-        $platilloHero = Platillo::where('categoria', 'plato_fuerte')
+        // Cargar platillos con su categoría
+        $platillos = Platillo::with('categoriaRelacion')
             ->when($restaurante, fn($q) => $q->where('restaurante_id', $restaurante->id))
-            ->first();
+            ->orderBy('nombre')
+            ->get();
 
         return view('men_digital_foodpass.menu_digital', compact(
             'usuario',
             'restaurante',
-            'platillos',
-            'platilloHero',
-            'categoriaActiva'
+            'categorias',
+            'categoriaActiva',
+            'platillos'
         ));
     }
 }
